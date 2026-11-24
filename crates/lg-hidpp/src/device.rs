@@ -93,6 +93,14 @@ impl<T: Transport> Device<T> {
         self.feature(page).map(|f| f.index).ok_or(Error::FeatureMissing(page))
     }
 
+    pub(crate) fn timeout(&self) -> Duration {
+        self.timeout
+    }
+
+    pub(crate) fn set_timeout(&mut self, timeout: Duration) {
+        self.timeout = timeout;
+    }
+
     pub fn into_transport(self) -> T {
         self.transport
     }

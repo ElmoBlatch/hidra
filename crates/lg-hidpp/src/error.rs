@@ -18,6 +18,10 @@ pub enum Error {
     Malformed(String),
     #[error("device supports neither short nor long HID++ reports")]
     NoHidppReports,
+    #[error("refusing to write sector {sector:#06x}: {reason}")]
+    WriteRefused { sector: u16, reason: String },
+    #[error("writing sector {sector:#06x} failed ({cause}); original contents {}", if *.restored { "were restored and verified" } else { "could NOT be restored" })]
+    WriteFailed { sector: u16, cause: String, restored: bool },
 }
 
 /// HID++ 2.0 error codes (`ff` feature-index replies).

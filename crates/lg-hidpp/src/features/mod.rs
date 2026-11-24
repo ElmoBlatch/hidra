@@ -1,4 +1,5 @@
-//! Typed, read-only HID++ 2.0 feature getters.
+//! Typed HID++ 2.0 feature access. Everything is a getter except
+//! [`onboard_profiles_write`], the one guarded write path.
 
 pub mod adjustable_dpi;
 pub mod battery_voltage;
@@ -6,6 +7,7 @@ pub mod device_info;
 pub mod device_name;
 pub mod feature_set;
 pub mod onboard_profiles;
+pub mod onboard_profiles_write;
 pub mod report_rate;
 pub mod root;
 

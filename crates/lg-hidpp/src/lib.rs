@@ -1,10 +1,11 @@
-//! Read-only access to Logitech HID++ 2.0 devices over Linux hidraw.
+//! Access to Logitech HID++ 2.0 devices over Linux hidraw.
 //!
-//! This crate deliberately exposes **no write path**. Every public feature
-//! function issues a getter. Request dispatch ([`Device::call`]) is
-//! crate-private so that callers cannot send arbitrary functions such as
-//! onboard-profile `BeginWrite`/`WriteData`. Writes will be added later as a
-//! separate, explicitly gated API once read-back verification exists.
+//! Almost everything here is read-only. Request dispatch ([`Device::call`])
+//! is crate-private, so callers cannot send arbitrary functions. The single
+//! write path is [`features::onboard_profiles_write::replace_sector`], which
+//! is compare-and-swap: it refuses unless the device still holds the bytes
+//! the caller expects, verifies the result by reading it back, and puts the
+//! original contents back if anything goes wrong.
 
 pub mod discovery;
 mod device;

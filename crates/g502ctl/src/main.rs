@@ -4,6 +4,7 @@
 //! getter functions.
 
 mod report;
+mod set_dpi;
 
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
@@ -47,6 +48,24 @@ enum Command {
         #[arg(long, default_value = "backups")]
         out: PathBuf,
     },
+    /// Change one DPI stage of an onboard profile. Dry run unless --yes is given.
+    SetDpi {
+        /// Profile number as shown by `profiles` plus one (1 = first profile).
+        #[arg(long)]
+        profile: u8,
+        /// DPI stage, 1 to 5.
+        #[arg(long)]
+        stage: u8,
+        /// New DPI value; 0 disables the stage.
+        #[arg(long)]
+        dpi: u16,
+        /// Actually write. Without this the change is only shown.
+        #[arg(long)]
+        yes: bool,
+        /// Where the automatic pre-write backup goes.
+        #[arg(long, default_value = "backups")]
+        backup_dir: PathBuf,
+    },
     /// Write a shareable report (JSON with replayable traffic) for every Logitech HID++ device.
     Report {
         #[arg(long, default_value = "reports")]
@@ -61,6 +80,12 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     if let Command::List = cli.command {
         return list();
+    }
+    if let Command::SetDpi { profile, stage, dpi, yes, backup_dir } = &cli.command {
+        if cli.replay.is_some() {
+            bail!("set-dpi writes to a live device; it cannot be combined with --replay");
+        }
+        return set_dpi::run(cli.device.as_deref(), *profile, *stage, *dpi, *yes, backup_dir);
     }
     if let Command::Report { out, include_macros } = &cli.command {
         if cli.replay.is_some() {
@@ -77,7 +102,7 @@ fn main() -> Result<()> {
             Command::Info => info(&mut dev)?,
             Command::Profiles => profiles(&mut dev)?,
             Command::Backup { out } => backup(&mut dev, &label, out)?,
-            Command::List | Command::Report { .. } => unreachable!(),
+            Command::List | Command::Report { .. } | Command::SetDpi { .. } => unreachable!(),
         }
         println!();
     }
@@ -258,7 +283,7 @@ fn info(dev: &mut Dev) -> Result<()> {
     Ok(())
 }
 
-fn read_descriptor(dev: &mut Dev) -> Result<Descriptor> {
+pub(crate) fn read_descriptor<T: Transport>(dev: &mut Device<T>) -> Result<Descriptor> {
     let raw = onboard_profiles::info_raw(dev).context("device has no onboard-profiles feature")?;
     let d = Descriptor::parse(&raw).context("short onboard-profiles descriptor")?;
     if !d.layout_supported() {
@@ -337,7 +362,7 @@ struct SectorRecord {
     error: Option<String>,
 }
 
-fn backup(dev: &mut Dev, label: &str, out: &Path) -> Result<()> {
+pub(crate) fn backup<T: Transport>(dev: &mut Device<T>, label: &str, out: &Path) -> Result<()> {
     let raw = onboard_profiles::info_raw(dev)?;
     let d = read_descriptor(dev)?;
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
