@@ -1,0 +1,13 @@
+[package]
+name = "lg-profiles"
+description = "Codec for Logitech HID++ onboard-profile (0x8100) sectors"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[dev-dependencies]
+lg-hidpp.workspace = true

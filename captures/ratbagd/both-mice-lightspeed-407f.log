@@ -1,0 +1,1035 @@
+Starting ratbagd version 0.18 (API version 2)
+Initializing libratbag
+ratbag debug: New device: Realtek HID Device
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: No data file found for 187c:100e
+ratbag debug: New device: American Power Conversion Back-UPS RS 1500G FW:865.L6 .D USB FW:L6 
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: No data file found for 051d:0002
+ratbag debug: New device: Logitech USB Receiver
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: 046d:c539 is a Logitech receiver, not a device. Ignoring...
+ratbag debug: New device: Logitech USB Receiver
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: 046d:c539 is a Logitech receiver, not a device. Ignoring...
+ratbag debug: New device: Logitech G502
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: device assigned driver hidpp20
+ratbag debug: hidraw info: bus 0x03 vendor 0x46d product 0xffffc539
+ratbag debug: hidraw info: bus 0x03 vendor 0x46d product 0xffffc539
+ratbag debug: hidraw info: bus 0x03 vendor 0x46d product 0x407f
+ratbag debug: Logitech G502 is device '/dev/hidraw15'.
+ratbag debug: Parsing HID report descriptor
+ratbag debug: Parsing HID report descriptor
+ratbag debug: - HID report ID 01
+ratbag debug: - HID report ID 0e
+ratbag debug: - HID report ID 02
+ratbag debug: - HID report ID 03
+ratbag debug: - HID report ID 10
+ratbag debug: - HID report ID 11
+ratbag debug: - HID report ID 20
+ratbag debug: - HID report ID 21
+ratbag debug: hidpp: device supports short reports
+ratbag debug: hidpp: device supports long reports
+ratbag raw: hidpp write:  10 ff 00 18 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 00 18 04 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 00 08 00 01 00
+ratbag raw: hidpp read:   11 01 00 08 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0001 is at 0x01
+ratbag raw: hidpp write:  10 ff 01 08 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 01 08 1d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 01 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 01 00 00
+ratbag raw: hidpp read:   11 01 01 18 00 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 02 00 00
+ratbag raw: hidpp read:   11 01 01 18 00 03 00 02 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 03 00 00
+ratbag raw: hidpp read:   11 01 01 18 00 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 04 00 00
+ratbag raw: hidpp read:   11 01 01 18 1d 4b 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 05 00 00
+ratbag raw: hidpp read:   11 01 01 18 00 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 06 00 00
+ratbag raw: hidpp read:   11 01 01 18 10 01 00 02 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 07 00 00
+ratbag raw: hidpp read:   11 01 01 18 80 70 00 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 08 00 00
+ratbag raw: hidpp read:   11 01 01 18 13 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 09 00 00
+ratbag raw: hidpp read:   11 01 01 18 81 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0a 00 00
+ratbag raw: hidpp read:   11 01 01 18 81 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0b 00 00
+ratbag raw: hidpp read:   11 01 01 18 80 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0c 00 00
+ratbag raw: hidpp read:   11 01 01 18 22 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0d 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 02 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0e 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 03 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0f 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 05 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 10 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 06 60 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 11 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 11 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 12 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 30 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 13 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 90 60 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 14 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 91 60 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 15 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 a1 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 16 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 01 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 17 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 b1 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 18 00 00
+ratbag raw: hidpp read:   11 01 01 18 1d f3 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 19 00 00
+ratbag raw: hidpp read:   11 01 01 18 1e 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 1a 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 01 18 1e b0 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 1b 00 00
+ratbag raw: hidpp read:   11 01 01 18 18 63 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 1c 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 01 18 1e 22 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 1d 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 01 18 21 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag debug: 'Logitech G502' is using protocol v4.2
+ratbag raw: 'Logitech G502' has 30 features
+ratbag raw: Init feature HIDPP_PAGE_ROOT (0x0000) 
+ratbag raw: hidpp write:  10 ff 00 08 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0000 is at 0x00
+ratbag raw: Init feature HIDPP_PAGE_FEATURE_SET (0x0001) 
+ratbag raw: hidpp write:  10 ff 00 08 00 01 00
+ratbag raw: hidpp read:   11 01 00 08 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0001 is at 0x01
+ratbag raw: Init feature HIDPP_PAGE_DEVICE_INFO (0x0003) 
+ratbag raw: hidpp write:  10 ff 00 08 00 03 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 02 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0003 is at 0x02
+ratbag raw: unknown feature 0x0003
+ratbag raw: Init feature HIDPP_PAGE_DEVICE_NAME (0x0005) 
+ratbag raw: hidpp write:  10 ff 00 08 00 05 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0005 is at 0x03
+ratbag raw: unknown feature 0x0005
+ratbag raw: Init feature HIDPP_PAGE_WIRELESS_DEVICE_STATUS (0x1d4b) 
+ratbag raw: hidpp write:  10 ff 00 08 1d 4b 00
+ratbag raw: hidpp read:   11 01 00 08 04 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1d4b is at 0x04
+ratbag raw: unknown feature 0x1d4b
+ratbag raw: Init feature HIDPP_PAGE_RESET (0x0020) 
+ratbag raw: hidpp write:  10 ff 00 08 00 20 00
+ratbag raw: hidpp read:   11 01 00 08 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0020 is at 0x05
+ratbag raw: unknown feature 0x0020
+ratbag raw: Init feature HIDPP_PAGE_BATTERY_VOLTAGE (0x1001) 
+ratbag raw: hidpp write:  10 ff 00 08 10 01 00
+ratbag raw: hidpp read:   11 01 00 08 06 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1001 is at 0x06
+ratbag raw: hidpp write:  10 ff 06 08 00 00 00
+ratbag raw: hidpp read:   11 01 06 08 0e a6 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag debug: device battery voltage is 3750mv, status 00 
+ratbag raw: Init feature HIDPP_PAGE_COLOR_LED_EFFECTS (0x8070) 
+ratbag raw: hidpp write:  10 ff 00 08 80 70 00
+ratbag raw: hidpp read:   11 01 00 08 07 00 04 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8070 is at 0x07
+ratbag debug: device has color effects
+ratbag raw: Init feature HIDPP_PAGE_LED_SW_CONTROL (0x1300) 
+ratbag raw: hidpp write:  10 ff 00 08 13 00 00
+ratbag raw: hidpp read:   11 01 00 08 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1300 is at 0x08
+ratbag debug: device has non-rgb leds
+ratbag raw: Init feature HIDPP_PAGE_ONBOARD_PROFILES (0x8100) 
+ratbag raw: hidpp write:  10 ff 00 08 81 00 00
+ratbag raw: hidpp read:   11 01 00 08 09 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8100 is at 0x09
+ratbag debug: device has onboard profiles
+ratbag raw: Init feature HIDPP_PAGE_MOUSE_BUTTON_SPY (0x8110) 
+ratbag raw: hidpp write:  10 ff 00 08 81 10 00
+ratbag raw: hidpp read:   11 01 00 08 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8110 is at 0x0a
+ratbag debug: device has configurable mouse button spy
+ratbag raw: Init feature HIDPP_PAGE_ADJUSTABLE_REPORT_RATE (0x8060) 
+ratbag raw: hidpp write:  10 ff 00 08 80 60 00
+ratbag raw: hidpp read:   11 01 00 08 0b 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8060 is at 0x0b
+ratbag debug: device has adjustable report rate
+ratbag raw: hidpp write:  10 ff 0b 08 00 00 00
+ratbag raw: hidpp read:   11 01 0b 08 8b 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0b 18 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 0b 18 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag debug: report rate is 1000
+ratbag debug: device has 4 report rates
+ratbag raw: Init feature HIDPP_PAGE_ADJUSTABLE_DPI (0x2201) 
+ratbag raw: hidpp write:  10 ff 00 08 22 01 00
+ratbag raw: hidpp read:   11 01 00 08 0c 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x2201 is at 0x0c
+ratbag debug: device has adjustable dpi
+ratbag raw: hidpp write:  10 ff 0c 08 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 0c 08 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0c 18 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 0c 18 00 00 64 e0 32 64 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0c 28 00 00 00
+ratbag raw: hidpp read:   11 01 0c 28 00 19 00 03 20 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: sensor 0: current dpi: 6400 (default: 800) min: 100 max: 25600 steps: 50
+ratbag debug: device is at 6400 dpi (variable between 100 and 25600).
+ratbag raw: Init feature 0x1802 (0x1802) 
+ratbag raw: hidpp write:  10 ff 00 08 18 02 00
+ratbag raw: hidpp read:   11 01 00 08 0d 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1802 is at 0x0d
+ratbag raw: Init feature 0x1803 (0x1803) 
+ratbag raw: hidpp write:  10 ff 00 08 18 03 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 0e 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1803 is at 0x0e
+ratbag raw: Init feature 0x1805 (0x1805) 
+ratbag raw: hidpp write:  10 ff 00 08 18 05 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 0f 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1805 is at 0x0f
+ratbag raw: Init feature 0x1806 (0x1806) 
+ratbag raw: hidpp write:  10 ff 00 08 18 06 00
+ratbag raw: hidpp read:   11 01 00 08 10 60 04 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1806 is at 0x10
+ratbag raw: Init feature 0x1811 (0x1811) 
+ratbag raw: hidpp write:  10 ff 00 08 18 11 00
+ratbag raw: hidpp read:   11 01 00 08 11 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1811 is at 0x11
+ratbag raw: Init feature 0x1830 (0x1830) 
+ratbag raw: hidpp write:  10 ff 00 08 18 30 00
+ratbag raw: hidpp read:   11 01 00 08 12 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1830 is at 0x12
+ratbag raw: Init feature 0x1890 (0x1890) 
+ratbag raw: hidpp write:  10 ff 00 08 18 90 00
+ratbag raw: hidpp read:   02 00 00 ff ff 01 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 13 60 04 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1890 is at 0x13
+ratbag raw: Init feature 0x1891 (0x1891) 
+ratbag raw: hidpp write:  10 ff 00 08 18 91 00
+ratbag raw: hidpp read:   11 01 00 08 14 60 04 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1891 is at 0x14
+ratbag raw: Init feature 0x18a1 (0x18a1) 
+ratbag raw: hidpp write:  10 ff 00 08 18 a1 00
+ratbag raw: hidpp read:   11 01 00 08 15 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x18a1 is at 0x15
+ratbag raw: Init feature 0x1801 (0x1801) 
+ratbag raw: hidpp write:  10 ff 00 08 18 01 00
+ratbag raw: hidpp read:   11 01 00 08 16 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1801 is at 0x16
+ratbag raw: Init feature 0x18b1 (0x18b1) 
+ratbag raw: hidpp write:  10 ff 00 08 18 b1 00
+ratbag raw: hidpp read:   11 01 00 08 17 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x18b1 is at 0x17
+ratbag raw: Init feature 0x1df3 (0x1df3) 
+ratbag raw: hidpp write:  10 ff 00 08 1d f3 00
+ratbag raw: hidpp read:   11 01 00 08 18 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1df3 is at 0x18
+ratbag raw: Init feature 0x1e00 (0x1e00) 
+ratbag raw: hidpp write:  10 ff 00 08 1e 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 19 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1e00 is at 0x19
+ratbag raw: Init feature 0x1eb0 (0x1eb0) 
+ratbag raw: hidpp write:  10 ff 00 08 1e b0 00
+ratbag raw: hidpp read:   11 01 00 08 1a 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1eb0 is at 0x1a
+ratbag raw: Init feature 0x1863 (0x1863) 
+ratbag raw: hidpp write:  10 ff 00 08 18 63 00
+ratbag raw: hidpp read:   11 01 00 08 1b 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1863 is at 0x1b
+ratbag raw: Init feature 0x1e22 (0x1e22) 
+ratbag raw: hidpp write:  10 ff 00 08 1e 22 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 1c 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1e22 is at 0x1c
+ratbag raw: Init feature 0x2121 (0x2121) 
+ratbag raw: hidpp write:  10 ff 00 08 21 21 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 00 08 1d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x2121 is at 0x1d
+ratbag raw: unknown feature 0x2121
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 18 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 07 18 00 00 01 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: led_info 0: location: 1 type Logo LED num_effects: 4 persistency_caps: 0x00
+ratbag raw: hidpp write:  10 ff 07 18 01 00 00
+ratbag raw: hidpp read:   11 01 07 18 01 00 02 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: led_info 1: location: 2 type Side LED num_effects: 4 persistency_caps: 0x00
+ratbag debug: initializing onboard profiles
+ratbag raw: hidpp write:  10 ff 09 08 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 08 01 03 01 05 01 0b 10 00 ff 0a 04 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 09 28 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 09 48 00 00 00
+ratbag raw: hidpp read:   11 01 09 48 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: current active profile is index: 1 unknown_0: 1
+ratbag debug: Reading sector 0x0000
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 00 00 00 ef 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag debug: Invalid CRC (ffff != b92a)
+ratbag debug: Profile directory has an invalid CRC... Reading ROM profiles.
+ratbag debug: Reading sector 0x0101
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 01 01 00 90 01 20 03 40 06 80 0c 00 19 ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 10 90 07 00 00 90 04 00 00 90 03 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 90 0c 00 00 90 02 00 00 90 01 00 00 ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 03 00 00 00 00 00 1f 40 00 00 00 03 00 00 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 00 1f 40 00 00 00 ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 ef 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag debug: Reading sector 0x0101
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 01 01 00 90 01 20 03 40 06 80 0c 00 19 ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 10 90 07 00 00 90 04 00 00 90 03 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 90 0c 00 00 90 02 00 00 90 01 00 00 ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 03 00 00 00 00 00 1f 40 00 00 00 03 00 00 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 00 1f 40 00 00 00 ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 ef 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag debug: Reading sector 0x0101
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 01 01 00 90 01 20 03 40 06 80 0c 00 19 ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 10 90 07 00 00 90 04 00 00 90 03 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 90 0c 00 00 90 02 00 00 90 01 00 00 ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 03 00 00 00 00 00 1f 40 00 00 00 03 00 00 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 00 1f 40 00 00 00 ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 ef 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag debug: Reading sector 0x0101
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 01 01 00 90 01 20 03 40 06 80 0c 00 19 ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 10 90 07 00 00 90 04 00 00 90 03 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 90 0c 00 00 90 02 00 00 90 01 00 00 ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 03 00 00 00 00 00 1f 40 00 00 00 03 00 00 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 00 1f 40 00 00 00 ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 ef 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag debug: Reading sector 0x0101
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 01 01 00 90 01 20 03 40 06 80 0c 00 19 ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 80 01 00 10 90 07 00 00 90 04 00 00 90 03 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 90 0c 00 00 90 02 00 00 90 01 00 00 ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 03 00 00 00 00 00 1f 40 00 00 00 03 00 00 00 00
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 00 1f 40 00 00 00 ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 09 58 01 01 00 ef 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 01 09 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 01 00
+ratbag raw: hidpp read:   11 01 07 28 00 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 02 00
+ratbag raw: hidpp read:   11 01 07 28 00 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 03 00
+ratbag raw: hidpp read:   11 01 07 28 00 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 00 00
+ratbag raw: hidpp read:   11 01 07 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 01 00
+ratbag raw: hidpp read:   11 01 07 28 01 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 02 00
+ratbag raw: hidpp read:   11 01 07 28 01 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 03 00
+ratbag raw: hidpp read:   11 01 07 28 01 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 09 b8 00 00 00
+ratbag raw: hidpp read:   11 01 09 b8 04 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 01 00
+ratbag raw: hidpp read:   11 01 07 28 00 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 02 00
+ratbag raw: hidpp read:   11 01 07 28 00 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 03 00
+ratbag raw: hidpp read:   11 01 07 28 00 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 00 00
+ratbag raw: hidpp read:   11 01 07 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 01 00
+ratbag raw: hidpp read:   11 01 07 28 01 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 02 00
+ratbag raw: hidpp read:   11 01 07 28 01 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 03 00
+ratbag raw: hidpp read:   11 01 07 28 01 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 01 00
+ratbag raw: hidpp read:   11 01 07 28 00 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 02 00
+ratbag raw: hidpp read:   11 01 07 28 00 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 03 00
+ratbag raw: hidpp read:   11 01 07 28 00 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 00 00
+ratbag raw: hidpp read:   11 01 07 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 01 00
+ratbag raw: hidpp read:   11 01 07 28 01 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 02 00
+ratbag raw: hidpp read:   11 01 07 28 01 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 03 00
+ratbag raw: hidpp read:   11 01 07 28 01 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 01 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 02 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 03 00
+ratbag raw: hidpp read:   02 00 00 00 00 01 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 00 00
+ratbag raw: hidpp read:   02 00 00 ff ff 00 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 01 00
+ratbag raw: hidpp read:   11 01 07 28 01 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 02 00
+ratbag raw: hidpp read:   11 01 07 28 01 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 03 00
+ratbag raw: hidpp read:   11 01 07 28 01 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 00 00
+ratbag raw: hidpp read:   11 01 07 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 01 00
+ratbag raw: hidpp read:   11 01 07 28 00 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 02 00
+ratbag raw: hidpp read:   11 01 07 28 00 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 00 03 00
+ratbag raw: hidpp read:   11 01 07 28 00 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 08 00 00 00
+ratbag raw: hidpp read:   11 01 07 08 02 00 03 00 04 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 00 00
+ratbag raw: hidpp read:   11 01 07 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 01 00
+ratbag raw: hidpp read:   11 01 07 28 01 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 02 00
+ratbag raw: hidpp read:   11 01 07 28 01 02 00 03 c0 05 03 e8 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 07 28 01 03 00
+ratbag raw: hidpp read:   11 01 07 28 01 03 00 0a c1 05 00 3c 00 00 00 00 00 00 00 00
+ratbag debug: driver match found: Logitech HID++2.0
+hidraw15: "Logitech G502", 5 profiles
+ratbag debug: New device: Logitech USB Receiver
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: 046d:c539 is a Logitech receiver, not a device. Ignoring...
+ratbag debug: New device: Microchip Tech Hub Controller
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: No data file found for 187c:1014
+ratbag debug: New device: Logitech Gaming Mouse G502
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: device assigned driver hidpp20
+ratbag debug: hidraw info: bus 0x03 vendor 0x46d product 0xffffc332
+ratbag debug: Logitech Gaming Mouse G502 is device '/dev/hidraw6'.
+ratbag debug: Parsing HID report descriptor
+ratbag debug: Parsing HID report descriptor
+ratbag debug: hidraw info: bus 0x03 vendor 0x46d product 0xffffc332
+ratbag debug: Logitech Gaming Mouse G502 is device '/dev/hidraw7'.
+ratbag debug: Parsing HID report descriptor
+ratbag debug: Parsing HID report descriptor
+ratbag debug: - HID report ID 01
+ratbag debug: - HID report ID 03
+ratbag debug: - HID report ID 04
+ratbag debug: - HID report ID 10
+ratbag debug: - HID report ID 11
+ratbag debug: hidpp: device supports short reports
+ratbag debug: hidpp: device supports long reports
+ratbag raw: hidpp write:  10 ff 00 18 00 00 00
+ratbag raw: hidpp read:   11 ff 00 18 04 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 00 08 00 01 00
+ratbag raw: hidpp read:   11 ff 00 08 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0001 is at 0x01
+ratbag raw: hidpp write:  10 ff 01 08 00 00 00
+ratbag raw: hidpp read:   11 ff 01 08 13 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 00 00 00
+ratbag raw: hidpp read:   11 ff 01 18 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 01 00 00
+ratbag raw: hidpp read:   11 ff 01 18 00 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 02 00 00
+ratbag raw: hidpp read:   11 ff 01 18 80 70 00 03 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 03 00 00
+ratbag raw: hidpp read:   11 ff 01 18 00 03 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 04 00 00
+ratbag raw: hidpp read:   11 ff 01 18 00 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 05 00 00
+ratbag raw: hidpp read:   11 ff 01 18 13 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 06 00 00
+ratbag raw: hidpp read:   11 ff 01 18 18 a1 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 07 00 00
+ratbag raw: hidpp read:   11 ff 01 18 1e 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 08 00 00
+ratbag raw: hidpp read:   11 ff 01 18 1e 20 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 09 00 00
+ratbag raw: hidpp read:   11 ff 01 18 1e b0 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0a 00 00
+ratbag raw: hidpp read:   11 ff 01 18 22 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0b 00 00
+ratbag raw: hidpp read:   11 ff 01 18 22 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0c 00 00
+ratbag raw: hidpp read:   11 ff 01 18 22 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0d 00 00
+ratbag raw: hidpp read:   11 ff 01 18 80 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0e 00 00
+ratbag raw: hidpp read:   11 ff 01 18 81 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 0f 00 00
+ratbag raw: hidpp read:   11 ff 01 18 81 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 10 00 00
+ratbag raw: hidpp read:   11 ff 01 18 18 50 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 11 00 00
+ratbag raw: hidpp read:   11 ff 01 18 00 c1 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 12 00 00
+ratbag raw: hidpp read:   11 ff 01 18 18 01 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 01 18 13 00 00
+ratbag raw: hidpp read:   11 ff 01 18 18 02 60 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag debug: 'Logitech Gaming Mouse G502' is using protocol v4.2
+ratbag raw: 'Logitech Gaming Mouse G502' has 20 features
+ratbag raw: Init feature HIDPP_PAGE_ROOT (0x0000) 
+ratbag raw: hidpp write:  10 ff 00 08 00 00 00
+ratbag raw: hidpp read:   11 ff 00 08 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0000 is at 0x00
+ratbag raw: Init feature HIDPP_PAGE_FEATURE_SET (0x0001) 
+ratbag raw: hidpp write:  10 ff 00 08 00 01 00
+ratbag raw: hidpp read:   11 ff 00 08 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0001 is at 0x01
+ratbag raw: Init feature HIDPP_PAGE_COLOR_LED_EFFECTS (0x8070) 
+ratbag raw: hidpp write:  10 ff 00 08 80 70 00
+ratbag raw: hidpp read:   11 ff 00 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8070 is at 0x02
+ratbag debug: device has color effects
+ratbag raw: Init feature HIDPP_PAGE_DEVICE_INFO (0x0003) 
+ratbag raw: hidpp write:  10 ff 00 08 00 03 00
+ratbag raw: hidpp read:   11 ff 00 08 03 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0003 is at 0x03
+ratbag raw: unknown feature 0x0003
+ratbag raw: Init feature HIDPP_PAGE_DEVICE_NAME (0x0005) 
+ratbag raw: hidpp write:  10 ff 00 08 00 05 00
+ratbag raw: hidpp read:   11 ff 00 08 04 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x0005 is at 0x04
+ratbag raw: unknown feature 0x0005
+ratbag raw: Init feature HIDPP_PAGE_LED_SW_CONTROL (0x1300) 
+ratbag raw: hidpp write:  10 ff 00 08 13 00 00
+ratbag raw: hidpp read:   11 ff 00 08 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1300 is at 0x05
+ratbag debug: device has non-rgb leds
+ratbag raw: Init feature 0x18a1 (0x18a1) 
+ratbag raw: hidpp write:  10 ff 00 08 18 a1 00
+ratbag raw: hidpp read:   11 ff 00 08 06 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x18a1 is at 0x06
+ratbag raw: Init feature 0x1e00 (0x1e00) 
+ratbag raw: hidpp write:  10 ff 00 08 1e 00 00
+ratbag raw: hidpp read:   11 ff 00 08 07 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1e00 is at 0x07
+ratbag raw: Init feature 0x1e20 (0x1e20) 
+ratbag raw: hidpp write:  10 ff 00 08 1e 20 00
+ratbag raw: hidpp read:   11 ff 00 08 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1e20 is at 0x08
+ratbag raw: unknown feature 0x1e20
+ratbag raw: Init feature 0x1eb0 (0x1eb0) 
+ratbag raw: hidpp write:  10 ff 00 08 1e b0 00
+ratbag raw: hidpp read:   11 ff 00 08 09 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1eb0 is at 0x09
+ratbag raw: Init feature HIDPP_PAGE_ADJUSTABLE_DPI (0x2201) 
+ratbag raw: hidpp write:  10 ff 00 08 22 01 00
+ratbag raw: hidpp read:   11 ff 00 08 0a 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x2201 is at 0x0a
+ratbag debug: device has adjustable dpi
+ratbag raw: hidpp write:  10 ff 0a 08 00 00 00
+ratbag raw: hidpp read:   11 ff 0a 08 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0a 18 00 00 00
+ratbag raw: hidpp read:   11 ff 0a 18 00 00 32 e0 32 2e e0 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0a 28 00 00 00
+ratbag raw: hidpp read:   11 ff 0a 28 00 2e e0 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: sensor 0: current dpi: 12000 (default: 0) min: 50 max: 12000 steps: 50
+ratbag debug: device is at 12000 dpi (variable between 50 and 12000).
+ratbag raw: Init feature 0x2230 (0x2230) 
+ratbag raw: hidpp write:  10 ff 00 08 22 30 00
+ratbag raw: hidpp read:   11 ff 00 08 0b 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x2230 is at 0x0b
+ratbag raw: unknown feature 0x2230
+ratbag raw: Init feature 0x2240 (0x2240) 
+ratbag raw: hidpp write:  10 ff 00 08 22 40 00
+ratbag raw: hidpp read:   11 ff 00 08 0c 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x2240 is at 0x0c
+ratbag raw: unknown feature 0x2240
+ratbag raw: Init feature HIDPP_PAGE_ADJUSTABLE_REPORT_RATE (0x8060) 
+ratbag raw: hidpp write:  10 ff 00 08 80 60 00
+ratbag raw: hidpp read:   11 ff 00 08 0d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8060 is at 0x0d
+ratbag debug: device has adjustable report rate
+ratbag raw: hidpp write:  10 ff 0d 08 00 00 00
+ratbag raw: hidpp read:   11 ff 0d 08 8b 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0d 18 00 00 00
+ratbag raw: hidpp read:   11 ff 0d 18 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag debug: report rate is 1000
+ratbag debug: device has 4 report rates
+ratbag raw: Init feature HIDPP_PAGE_ONBOARD_PROFILES (0x8100) 
+ratbag raw: hidpp write:  10 ff 00 08 81 00 00
+ratbag raw: hidpp read:   11 ff 00 08 0e 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8100 is at 0x0e
+ratbag debug: device has onboard profiles
+ratbag raw: Init feature HIDPP_PAGE_MOUSE_BUTTON_SPY (0x8110) 
+ratbag raw: hidpp write:  10 ff 00 08 81 10 00
+ratbag raw: hidpp read:   11 ff 00 08 0f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x8110 is at 0x0f
+ratbag debug: device has configurable mouse button spy
+ratbag raw: Init feature 0x1850 (0x1850) 
+ratbag raw: hidpp write:  10 ff 00 08 18 50 00
+ratbag raw: hidpp read:   11 ff 00 08 10 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1850 is at 0x10
+ratbag raw: Init feature 0xc1 (0x00c1) 
+ratbag raw: hidpp write:  10 ff 00 08 00 c1 00
+ratbag raw: hidpp read:   11 ff 00 08 11 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x00c1 is at 0x11
+ratbag raw: unknown feature 0x00c1
+ratbag raw: Init feature 0x1801 (0x1801) 
+ratbag raw: hidpp write:  10 ff 00 08 18 01 00
+ratbag raw: hidpp read:   11 ff 00 08 12 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1801 is at 0x12
+ratbag raw: Init feature 0x1802 (0x1802) 
+ratbag raw: hidpp write:  10 ff 00 08 18 02 00
+ratbag raw: hidpp read:   11 ff 00 08 13 60 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: feature 0x1802 is at 0x13
+ratbag raw: hidpp write:  10 ff 02 08 00 00 00
+ratbag raw: hidpp read:   11 ff 02 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 18 00 00 00
+ratbag raw: hidpp read:   11 ff 02 18 00 00 01 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: led_info 0: location: 1 type Logo LED num_effects: 4 persistency_caps: 0x00
+ratbag raw: hidpp write:  10 ff 02 18 01 00 00
+ratbag raw: hidpp read:   11 ff 02 18 01 00 02 04 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: led_info 1: location: 2 type Side LED num_effects: 4 persistency_caps: 0x00
+ratbag debug: initializing onboard profiles
+ratbag raw: hidpp write:  10 ff 0e 08 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 08 01 02 01 03 03 0b 10 01 00 0a 01 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0e 28 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0e 48 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 48 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: current active profile is index: 1 unknown_0: 0
+ratbag debug: Reading sector 0x0000
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 01 01 00 00 02 01 00 00 03 01 00 ff ff 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 00 00 f0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff da 84
+ratbag debug: Parsing profile 0
+ratbag debug: Reading sector 0x0001
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 01 03 00 16 0d 1e 14 34 21 e0 2e 00 00 ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 80 01 00 10 80 02 00 73 90 04 ff 00 90 03 ff 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 90 0a ff 00 90 02 ff 00 90 01 ff 00 ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 44 00 65 00 66 00 61 00 75 00 6c 00 74 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 03 00 00 00 00 00 1f 40 00 00 00 03 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 1f 40 00 00 00 03 00 00 00 00 00 1f 40 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 01 00 f0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 03 00 00 00 00 00 1f 40 00 00 00 ff ff 1c 32
+ratbag debug: Parsing profile 1
+ratbag debug: Reading sector 0x0002
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 01 02 00 90 01 20 03 40 06 60 09 00 00 ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 80 01 00 10 90 07 ff ff 90 04 ff ff 90 03 ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 90 0a ff ff 90 02 ff ff 90 01 ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 0a 00 dc ff 1f 40 00 00 00 00 00 0a 00 dc ff 1f
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 40 00 00 00 00 00 0a 00 dc ff 1f 40 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 02 00 f0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 0a 00 dc ff 1f 40 00 00 00 00 00 ff ff 59 d7
+ratbag debug: Parsing profile 2
+ratbag debug: Reading sector 0x0003
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 02 00 00 60 09 00 00 00 00 00 00 00 00 ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 10 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 80 01 00 01 80 01 00 02 80 01 00 04 80 01 00 08
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 30 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 80 01 00 10 90 0b ff ff 80 02 01 06 80 02 01 19
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 40 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 90 0a ff ff 90 02 ff ff 90 01 ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 50 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 60 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 70 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 80 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 90 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 a0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 b0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 c0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 d0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 01 ff ff ff 00 00 00 00 00 00 00 01 ff ff ff 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 e0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 00 00 00 00 00 01 ff ff ff 00 00 00 00 00 00
+ratbag raw: hidpp write:  11 ff 0e 58 00 03 00 f0 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp read:   11 ff 0e 58 00 01 ff ff ff 00 00 00 00 00 00 00 ff ff 78 f5
+ratbag raw: hidpp write:  10 ff 02 08 00 00 00
+ratbag raw: hidpp read:   11 ff 02 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 00 00
+ratbag raw: hidpp read:   11 ff 02 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 01 00
+ratbag raw: hidpp read:   11 ff 02 28 00 01 00 01 00 05 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 02 00
+ratbag raw: hidpp read:   11 ff 02 28 00 02 00 0a c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 03 00
+ratbag raw: hidpp read:   11 ff 02 28 00 03 00 03 c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 08 00 00 00
+ratbag raw: hidpp read:   11 ff 02 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 00 00
+ratbag raw: hidpp read:   11 ff 02 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 01 00
+ratbag raw: hidpp read:   11 ff 02 28 01 01 00 01 00 05 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 02 00
+ratbag raw: hidpp read:   11 ff 02 28 01 02 00 0a c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 03 00
+ratbag raw: hidpp read:   11 ff 02 28 01 03 00 03 c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 0e b8 00 00 00
+ratbag raw: hidpp read:   11 ff 0e b8 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 08 00 00 00
+ratbag raw: hidpp read:   11 ff 02 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 00 00
+ratbag raw: hidpp read:   11 ff 02 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 01 00
+ratbag raw: hidpp read:   11 ff 02 28 00 01 00 01 00 05 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 02 00
+ratbag raw: hidpp read:   11 ff 02 28 00 02 00 0a c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 03 00
+ratbag raw: hidpp read:   11 ff 02 28 00 03 00 03 c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 08 00 00 00
+ratbag raw: hidpp read:   11 ff 02 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 00 00
+ratbag raw: hidpp read:   11 ff 02 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 01 00
+ratbag raw: hidpp read:   11 ff 02 28 01 01 00 01 00 05 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 02 00
+ratbag raw: hidpp read:   11 ff 02 28 01 02 00 0a c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 03 00
+ratbag raw: hidpp read:   11 ff 02 28 01 03 00 03 c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 08 00 00 00
+ratbag raw: hidpp read:   11 ff 02 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 00 00
+ratbag raw: hidpp read:   11 ff 02 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 01 00
+ratbag raw: hidpp read:   11 ff 02 28 00 01 00 01 00 05 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 02 00
+ratbag raw: hidpp read:   11 ff 02 28 00 02 00 0a c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 00 03 00
+ratbag raw: hidpp read:   11 ff 02 28 00 03 00 03 c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 08 00 00 00
+ratbag raw: hidpp read:   11 ff 02 08 02 00 03 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 00 00
+ratbag raw: hidpp read:   11 ff 02 28 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 01 00
+ratbag raw: hidpp read:   11 ff 02 28 01 01 00 01 00 05 00 00 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 02 00
+ratbag raw: hidpp read:   11 ff 02 28 01 02 00 0a c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag raw: hidpp write:  10 ff 02 28 01 03 00
+ratbag raw: hidpp read:   11 ff 02 28 01 03 00 03 c0 05 03 e0 00 00 00 00 00 00 00 00
+ratbag debug: driver match found: Logitech HID++2.0
+hidraw6: "Logitech Gaming Mouse G502", 3 profiles
+ratbag debug: New device: Logitech Gaming Mouse G502
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: device assigned driver hidpp20
+ratbag debug: hidraw info: bus 0x03 vendor 0x46d product 0xffffc332
+ratbag debug: Logitech Gaming Mouse G502 is device '/dev/hidraw6'.
+ratbag debug: Parsing HID report descriptor
+ratbag debug: Parsing HID report descriptor
+ratbag debug: New device: Generic USB Audio
+ratbag debug: Using data directory '/usr/share/libratbag'
+ratbag debug: No data fil

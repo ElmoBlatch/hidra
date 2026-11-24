@@ -1,0 +1,8 @@
+# Give the logged-in user access to the HID++ hidraw nodes of:
+#   046d:c332  G502 Proteus Spectrum (wired)
+#   046d:c08d  G502 LIGHTSPEED (on its cable)
+#   046d:c539  LIGHTSPEED receiver; also matches the per-mouse hidraw node that
+#              hid-logitech-dj creates under it (e.g. 046d:407f)
+# Install:  sudo install -m644 packaging/70-g502ctl.rules /etc/udev/rules.d/
+#           sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=hidraw
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="046d", ATTRS{idProduct}=="c332|c08d|c539", TAG+="uaccess"

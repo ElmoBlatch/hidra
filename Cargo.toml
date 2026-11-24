@@ -1,0 +1,20 @@
+[workspace]
+resolver = "3"
+members = ["crates/lg-hidpp", "crates/lg-profiles", "crates/lg-snapshot", "crates/g502ctl", "crates/g502-config"]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace.dependencies]
+lg-hidpp = { path = "crates/lg-hidpp" }
+lg-profiles = { path = "crates/lg-profiles" }
+lg-snapshot = { path = "crates/lg-snapshot" }
+libc = "0.2"
+thiserror = "2"
+anyhow = "1"
+clap = { version = "4.6", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

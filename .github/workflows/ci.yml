@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Test (device layers and CLI)
+        run: cargo test -p lg-hidpp -p lg-profiles -p lg-snapshot -p g502ctl
+      - name: Clippy
+        run: cargo clippy -p lg-hidpp -p lg-profiles -p lg-snapshot -p g502ctl --all-targets -- -D warnings
+
+  release-cli:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release -p g502ctl
+      - run: cp target/release/g502ctl g502ctl-x86_64-linux
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: g502ctl-x86_64-linux

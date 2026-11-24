@@ -1,0 +1,15 @@
+[package]
+name = "g502ctl"
+description = "Read-only inspector and backup tool for Logitech G502 mice"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lg-hidpp.workspace = true
+lg-profiles.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true

@@ -1,0 +1,12 @@
+[package]
+name = "lg-snapshot"
+description = "Read a Logitech G502 into a plain, owned snapshot (read-only)"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+lg-hidpp.workspace = true
+lg-profiles.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,54 @@
+name: Device report
+description: Send a g502ctl report from a Logitech mouse or keyboard so we can add support for it
+title: "Device report: <model>"
+labels: ["device-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Instructions: [docs/device-reports.md](https://github.com/ElmoBlatch/hidra/blob/main/docs/device-reports.md).
+        Collecting a report only reads from your device.
+  - type: input
+    id: model
+    attributes:
+      label: Device model
+      description: As printed on the device or box, e.g. "G Pro X Superlight 2"
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection used for this report
+      options:
+        - USB cable
+        - LIGHTSPEED receiver
+        - Unifying receiver
+        - Bolt receiver
+        - Bluetooth
+        - Other / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Report file
+      description: Drag the g502ctl-report-*.json file here.
+    validations:
+      required: true
+  - type: textarea
+    id: accuracy
+    attributes:
+      label: Does `g502ctl info` / `g502ctl profiles` match the device?
+      description: Anything wrong or missing (DPI values, button actions, lighting), and what G HUB / LGS shows instead, if you know.
+  - type: input
+    id: distro
+    attributes:
+      label: Distribution
+      placeholder: e.g. Arch, Fedora 43, Ubuntu 26.04
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I understand the report includes my profile names and, if I used --include-macros, my macros.
+          required: true
