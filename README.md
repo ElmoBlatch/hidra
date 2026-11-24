@@ -38,7 +38,8 @@ only reads from the device.
 Needs Rust and Linux.
 
 ```sh
-cargo build --release
+cargo install --path crates/hidractl   # command-line tool
+cargo install --path crates/hidra      # desktop viewer
 
 # Let your user read the mice without root:
 sudo install -m644 packaging/70-hidra.rules /etc/udev/rules.d/
@@ -51,8 +52,8 @@ with `sudo`, or add the product ID to the rule.
 ## Desktop viewer
 
 ```sh
-cargo run --release -p hidra            # dark theme
-cargo run --release -p hidra -- --light
+hidra            # dark theme
+hidra --light
 ```
 
 Shows each mouse's sensor DPI, polling rate, battery and active profile, and

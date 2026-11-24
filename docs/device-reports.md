@@ -8,13 +8,13 @@ suite. Collecting it **only reads** from the device; nothing on it is changed.
 ## 1. Get the tool
 
 Either download `hidractl-x86_64-linux` from the latest GitHub release
-(`chmod +x` it and use it in place of `./target/release/hidractl` below), or
+(`chmod +x` it and use it in place of `~/.cargo/bin/hidractl` below), or
 build it. Building needs Rust (<https://rustup.rs>) and Linux.
 
 ```sh
 git clone https://github.com/ElmoBlatch/hidra.git
 cd hidra
-cargo build --release -p hidractl
+cargo install --path crates/hidractl
 ```
 
 ## 2. Plug in the device
@@ -28,7 +28,7 @@ press a key just before running the report.
 Reading hidraw devices needs root, so the simplest way is a one-off `sudo`:
 
 ```sh
-sudo ./target/release/hidractl report --out reports
+sudo ~/.cargo/bin/hidractl report --out reports
 ```
 
 (If you plan to use the tool regularly, install the udev rule instead; see the
@@ -44,8 +44,8 @@ text you typed.
 ## 4. Check it (optional)
 
 ```sh
-./target/release/hidractl info        # what the tool can read
-./target/release/hidractl profiles    # decoded onboard profiles
+hidractl info        # what the tool can read
+hidractl profiles    # decoded onboard profiles
 ```
 
 If something looks wrong (wrong DPI, buttons that do not match what the device
