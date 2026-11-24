@@ -1,6 +1,6 @@
 [package]
 name = "lg-hidpp"
-description = "Read-only Logitech HID++ 2.0 transport and feature access for Linux hidraw"
+description = "Logitech HID++ 2.0 transport and feature access for Linux hidraw"
 edition.workspace = true
 version.workspace = true
 license.workspace = true

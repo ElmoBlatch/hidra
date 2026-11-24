@@ -3,8 +3,8 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
-use g502_config::state::{DeviceRead, Discovery};
-use g502_config::{MiceWindow, Source};
+use hidra::state::{DeviceRead, Discovery};
+use hidra::{MiceWindow, Source};
 use gpui_kit::test::{TestAppContextExt as _, TestEventExt as _, TestQueryExt as _, TestWindowExt as _};
 use gpui_kit::{
     AnyWindowHandle, AppContext as _, Bounds, MouseButton, Entity, TestAppContext, WindowBounds, WindowOptions, px, size,
@@ -16,8 +16,8 @@ fn capture(name: &str) -> PathBuf {
 
 fn open(cx: &mut TestAppContext, source: Source) -> (AnyWindowHandle, Entity<MiceWindow>) {
     cx.update(gpui_kit::init);
-    cx.update(g502_config::theme::init);
-    cx.update(g502_config::init);
+    cx.update(hidra::theme::init);
+    cx.update(hidra::init);
     cx.update(|cx| {
         gpui_kit::open_window(
             WindowOptions {

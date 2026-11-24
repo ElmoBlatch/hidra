@@ -1,9 +1,9 @@
-//! `g502-config`: readonly desktop viewer for Logitech G502 mice.
+//! `hidra`: readonly desktop viewer for Logitech G502 mice.
 
 use std::path::PathBuf;
 
 use clap::Parser;
-use g502_config::{MiceWindow, Source};
+use hidra::{MiceWindow, Source};
 use gpui_kit::{
     AppContext as _, Bounds, SharedString, TitlebarOptions, WindowBounds, WindowDecorations, WindowOptions, px, size,
 };
@@ -31,18 +31,18 @@ fn main() {
 
     gpui_kit::application().with_assets(gpui_kit::assets::Assets).run(move |cx| {
         gpui_kit::init(cx);
-        g502_config::theme::init(cx);
+        hidra::theme::init(cx);
         if cli.light {
-            g502_config::theme::toggle(cx);
+            hidra::theme::toggle(cx);
         }
-        g502_config::init(cx);
+        hidra::init(cx);
 
         let options = WindowOptions {
             window_bounds: Some(WindowBounds::Windowed(Bounds::centered(None, size(px(1180.), px(820.)), cx))),
             window_min_size: Some(size(px(760.), px(520.))),
-            titlebar: Some(TitlebarOptions { title: Some(SharedString::from("G502 Config")), ..Default::default() }),
+            titlebar: Some(TitlebarOptions { title: Some(SharedString::from("hidra")), ..Default::default() }),
             window_decorations: Some(WindowDecorations::Server),
-            app_id: Some("g502-config".into()),
+            app_id: Some("hidra".into()),
             ..Default::default()
         };
         gpui_kit::open_window(options, cx, |window, cx| {

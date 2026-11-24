@@ -1,7 +1,8 @@
-//! `g502ctl`: read-only inspector and backup tool for Logitech G502 mice.
+//! `hidractl`: inspector, backup, device-report and DPI tool for Logitech
+//! HID++ mice.
 //!
-//! Nothing in this binary can change device state: `lg-hidpp` exposes only
-//! getter functions.
+//! Every command only reads, except `set-dpi`, which goes through the guarded
+//! compare-and-swap write in `lg-hidpp` (see `set_dpi.rs`).
 
 mod report;
 mod set_dpi;
@@ -20,7 +21,7 @@ use lg_profiles::{Descriptor, Directory, Profile, Sector};
 use serde::Serialize;
 
 #[derive(Parser)]
-#[command(version, about = "Read-only inspector and backup tool for Logitech G502 mice")]
+#[command(version, about = "Inspector, backup, device-report and DPI tool for Logitech HID++ mice")]
 struct Cli {
     /// hidraw node to use (default: every detected Logitech HID++ device).
     #[arg(long, global = true, conflicts_with = "replay")]
@@ -147,7 +148,7 @@ type Dev = Device<AnyTransport>;
 fn open_targets(cli: &Cli) -> Result<Vec<(String, Dev)>> {
     if let Some(log) = &cli.replay {
         let mut text = std::fs::read_to_string(log).with_context(|| format!("reading {}", log.display()))?;
-        // A `g502ctl report` file carries its traffic log in the "log" field.
+        // A `hidractl report` file carries its traffic log in the "log" field.
         if text.trim_start().starts_with('{') {
             let report: serde_json::Value = serde_json::from_str(&text).context("parsing report JSON")?;
             text = report["log"].as_str().context("report has no \"log\" field")?.to_string();
@@ -184,7 +185,7 @@ fn open_targets(cli: &Cli) -> Result<Vec<(String, Dev)>> {
             Ok(t) => t,
             Err(e) if e.kind() == ErrorKind::PermissionDenied => {
                 bail!(
-                    "permission denied opening {}. Install packaging/70-g502ctl.rules (see README) or run as root",
+                    "permission denied opening {}. Install packaging/70-hidra.rules (see README) or run as root",
                     path.display()
                 )
             }
@@ -400,7 +401,7 @@ pub(crate) fn backup<T: Transport>(dev: &mut Device<T>, label: &str, out: &Path)
     }
     let (maj, min) = dev.protocol_version();
     let manifest = Manifest {
-        tool: format!("g502ctl {}", env!("CARGO_PKG_VERSION")),
+        tool: format!("hidractl {}", env!("CARGO_PKG_VERSION")),
         created_unix: now,
         device: label.to_string(),
         protocol: format!("{maj}.{min}"),

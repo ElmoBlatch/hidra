@@ -1,6 +1,6 @@
 [package]
-name = "g502ctl"
-description = "Read-only inspector and backup tool for Logitech G502 mice"
+name = "hidractl"
+description = "Inspector, backup and DPI tool for Logitech HID++ mice"
 edition.workspace = true
 version.workspace = true
 license.workspace = true

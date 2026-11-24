@@ -2080,27 +2080,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "g502-config"
-version = "0.1.0"
-dependencies = [
- "clap",
- "gpui-kit",
- "lg-snapshot",
-]
-
-[[package]]
-name = "g502ctl"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "lg-hidpp",
- "lg-profiles",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3374,6 +3353,27 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "hidra"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "gpui-kit",
+ "lg-snapshot",
+]
+
+[[package]]
+name = "hidractl"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "lg-hidpp",
+ "lg-profiles",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "hkdf"

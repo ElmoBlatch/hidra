@@ -1,5 +1,5 @@
 [package]
-name = "g502-config"
+name = "hidra"
 description = "Readonly desktop viewer for Logitech G502 mice"
 edition.workspace = true
 version.workspace = true
@@ -7,11 +7,11 @@ license.workspace = true
 publish.workspace = true
 
 [lib]
-name = "g502_config"
+name = "hidra"
 path = "src/lib.rs"
 
 [[bin]]
-name = "g502-config"
+name = "hidra"
 path = "src/main.rs"
 
 [dependencies]

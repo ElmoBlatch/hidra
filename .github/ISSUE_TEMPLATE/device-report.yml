@@ -1,5 +1,5 @@
 name: Device report
-description: Send a g502ctl report from a Logitech mouse or keyboard so we can add support for it
+description: Send a hidractl report from a Logitech mouse or keyboard so we can add support for it
 title: "Device report: <model>"
 labels: ["device-report"]
 body:
@@ -32,13 +32,13 @@ body:
     id: report
     attributes:
       label: Report file
-      description: Drag the g502ctl-report-*.json file here.
+      description: Drag the hidra-report-*.json file here.
     validations:
       required: true
   - type: textarea
     id: accuracy
     attributes:
-      label: Does `g502ctl info` / `g502ctl profiles` match the device?
+      label: Does `hidractl info` / `hidractl profiles` match the device?
       description: Anything wrong or missing (DPI values, button actions, lighting), and what G HUB / LGS shows instead, if you know.
   - type: input
     id: distro

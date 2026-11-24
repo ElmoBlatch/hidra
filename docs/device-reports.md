@@ -7,14 +7,14 @@ suite. Collecting it **only reads** from the device; nothing on it is changed.
 
 ## 1. Get the tool
 
-Either download `g502ctl-x86_64-linux` from the latest GitHub release
-(`chmod +x` it and use it in place of `./target/release/g502ctl` below), or
+Either download `hidractl-x86_64-linux` from the latest GitHub release
+(`chmod +x` it and use it in place of `./target/release/hidractl` below), or
 build it. Building needs Rust (<https://rustup.rs>) and Linux.
 
 ```sh
 git clone https://github.com/ElmoBlatch/hidra.git
 cd hidra
-cargo build --release -p g502ctl
+cargo build --release -p hidractl
 ```
 
 ## 2. Plug in the device
@@ -28,14 +28,14 @@ press a key just before running the report.
 Reading hidraw devices needs root, so the simplest way is a one-off `sudo`:
 
 ```sh
-sudo ./target/release/g502ctl report --out reports
+sudo ./target/release/hidractl report --out reports
 ```
 
 (If you plan to use the tool regularly, install the udev rule instead; see the
 README. Then you can drop `sudo`.)
 
 It prints one line per device it reads and the path of the report, e.g.
-`reports/g502ctl-report-c332-1795517600.json`.
+`reports/hidra-report-c332-1795517600.json`.
 
 Optional: `--include-macros` adds the onboard sectors that hold macros. Only
 use it if you know your macros contain nothing private: a macro can contain
@@ -44,8 +44,8 @@ text you typed.
 ## 4. Check it (optional)
 
 ```sh
-./target/release/g502ctl info        # what the tool can read
-./target/release/g502ctl profiles    # decoded onboard profiles
+./target/release/hidractl info        # what the tool can read
+./target/release/hidractl profiles    # decoded onboard profiles
 ```
 
 If something looks wrong (wrong DPI, buttons that do not match what the device

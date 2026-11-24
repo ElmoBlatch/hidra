@@ -1,4 +1,4 @@
-//! `g502-config`: a readonly desktop viewer for Logitech G502 mice.
+//! `hidra`: a readonly desktop viewer for Logitech G502 mice.
 //!
 //! The library holds the window and its state so integration tests can drive
 //! the production view; `main.rs` only parses arguments and opens the window.

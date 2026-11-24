@@ -35,7 +35,7 @@ use crate::profile_detail::ProfileDetail;
 use crate::state::{self, DeviceRead, Discovery, Source};
 
 actions!(
-    g502_config,
+    hidra,
     [
         Refresh,
         SelectNextDevice,
@@ -526,7 +526,7 @@ impl MiceWindow {
         let alert = match e {
             ReadError::PermissionDenied { path } => Alert::error(
                 "read-error",
-                "Install packaging/70-g502ctl.rules so your user can read the mouse, then reconnect it.",
+                "Install packaging/70-hidra.rules so your user can read the mouse, then reconnect it.",
             )
             .title(format!("Permission denied for {path}")),
             ReadError::Unreachable(detail) => Alert::warning(

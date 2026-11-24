@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use g502_config::present::{
+use hidra::present::{
     button_rows, device_title, headline_stats, is_g502_layout, profile_meta, profile_storage, stage_rows, summary_facts,
 };
 use lg_snapshot::{DeviceEntry, DeviceSnapshot, read_entry, replay_entries};
@@ -14,7 +14,7 @@ fn snapshot(log: &str, segment: &str) -> (DeviceEntry, DeviceSnapshot) {
     (entry, s)
 }
 
-fn fact<'a>(facts: &'a [g502_config::present::Fact], label: &str) -> Option<&'a str> {
+fn fact<'a>(facts: &'a [hidra::present::Fact], label: &str) -> Option<&'a str> {
     facts.iter().find(|f| f.label == label).map(|f| f.value.as_str())
 }
 

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/lg-hidpp", "crates/lg-profiles", "crates/lg-snapshot", "crates/g502ctl", "crates/g502-config"]
+members = ["crates/lg-hidpp", "crates/lg-profiles", "crates/lg-snapshot", "crates/hidractl", "crates/hidra"]
 
 [workspace.package]
 edition = "2024"

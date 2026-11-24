@@ -1,7 +1,7 @@
 //! Read a Logitech G502 into a plain, owned snapshot.
 //!
-//! This crate is the shared "read everything" layer for the `g502ctl` CLI and
-//! the `g502-config` desktop viewer. It is read-only by construction: it only
+//! This crate is the shared "read everything" layer for the `hidractl` CLI and
+//! the `hidra` desktop viewer. It is read-only by construction: it only
 //! calls the getter functions that `lg-hidpp` exposes, and `lg-hidpp` has no
 //! write path.
 //!

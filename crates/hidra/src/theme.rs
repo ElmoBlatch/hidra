@@ -16,7 +16,7 @@ pub fn init(cx: &mut App) {
     if let Err(e) = ThemeRegistry::global_mut(cx).load_themes_from_str(GRAPHITE) {
         // The file is compiled in, so this is a programming error; keep the
         // default theme rather than refusing to start.
-        eprintln!("g502-config: couldn't load the Graphite theme: {e}");
+        eprintln!("hidra: couldn't load the Graphite theme: {e}");
         return;
     }
     let themes = ThemeRegistry::global(cx).themes();

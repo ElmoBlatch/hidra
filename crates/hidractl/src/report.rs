@@ -1,4 +1,4 @@
-//! `g502ctl report`: collect a shareable, replayable device report.
+//! `hidractl report`: collect a shareable, replayable device report.
 //!
 //! The report is one JSON file holding the discovery list, a decoded summary
 //! per device, and the raw HID++ traffic in ratbagd log format, so it can be
@@ -21,7 +21,7 @@ use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidrawTransport, Transport};
 use lg_profiles::{Descriptor, Directory, Sector};
 use serde::Serialize;
 
-pub const FORMAT: &str = "g502ctl-report/1";
+pub const FORMAT: &str = "hidra-report/1";
 
 #[derive(Serialize)]
 struct Report {
@@ -132,7 +132,7 @@ pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     let report = Report {
         format: FORMAT,
-        tool: format!("g502ctl {}", env!("CARGO_PKG_VERSION")),
+        tool: format!("hidractl {}", env!("CARGO_PKG_VERSION")),
         created_unix: now,
         kernel: std::fs::read_to_string("/proc/sys/kernel/osrelease").ok().map(|s| s.trim().to_string()),
         privacy: Privacy {
@@ -160,7 +160,7 @@ pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
 
     std::fs::create_dir_all(out).with_context(|| format!("creating {}", out.display()))?;
     let pids: Vec<&str> = report.devices.iter().map(|d| d.pid.as_str()).collect();
-    let file = out.join(format!("g502ctl-report-{}-{now}.json", if pids.is_empty() { "none".into() } else { pids.join("-") }));
+    let file = out.join(format!("hidra-report-{}-{now}.json", if pids.is_empty() { "none".into() } else { pids.join("-") }));
     std::fs::write(&file, serde_json::to_string_pretty(&report)?)?;
     Ok(file)
 }
