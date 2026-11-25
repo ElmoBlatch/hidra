@@ -6,6 +6,7 @@
 //! device calls are `Source::discover` and `lg_snapshot::read_entry`.
 
 use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use gpui_kit::component::{
@@ -14,6 +15,7 @@ use gpui_kit::component::{
     button::{Button, ButtonVariants as _},
     description_list::{DescriptionItem, DescriptionList},
     empty::{Empty, EmptyDescription, EmptyHeader, EmptyTitle},
+    notification::Notification,
     h_flex,
     scroll::ScrollableElement as _,
     sidebar::{Sidebar, SidebarMenu, SidebarMenuItem},
@@ -25,13 +27,15 @@ use gpui_kit::component::{
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    App, AppContext as _, Context, FocusHandle, Focusable, InteractiveElement as _, IntoElement, KeyBinding,
-    ParentElement as _, Render, SharedString, Styled as _, Window, actions, div, rems,
+    App, AppContext as _, Context, Entity, FocusHandle, Focusable, InteractiveElement as _, IntoElement, KeyBinding,
+    ParentElement as _, Render, SharedString, Styled as _, Subscription, Window, actions, div, rems,
 };
-use lg_snapshot::{DeviceEntry, DeviceSnapshot, ReadError};
+use lg_profiles::ProfileEdit;
+use lg_snapshot::{DeviceEntry, DeviceSnapshot, EditError, ReadError};
 
 use crate::present::{self, Fact, Stat};
 use crate::profile_detail::ProfileDetail;
+use crate::profile_editor::{ProfileEditor, ProfileEditorEvent};
 use crate::state::{self, DeviceRead, Discovery, Source};
 
 actions!(
@@ -42,6 +46,7 @@ actions!(
         SelectPreviousDevice,
         SelectNextProfile,
         SelectPreviousProfile,
+        EditProfile,
         ShowDeviceInfo,
         ToggleTheme,
         Quit
@@ -61,6 +66,7 @@ pub fn init(cx: &mut App) {
         KeyBinding::new("alt-up", SelectPreviousDevice, Some(KEY_CONTEXT)),
         KeyBinding::new("ctrl-tab", SelectNextProfile, Some(KEY_CONTEXT)),
         KeyBinding::new("ctrl-shift-tab", SelectPreviousProfile, Some(KEY_CONTEXT)),
+        KeyBinding::new("ctrl-e", EditProfile, Some(KEY_CONTEXT)),
         KeyBinding::new("ctrl-i", ShowDeviceInfo, Some(KEY_CONTEXT)),
         KeyBinding::new("ctrl-shift-l", ToggleTheme, Some(KEY_CONTEXT)),
         KeyBinding::new("ctrl-q", Quit, None),
@@ -81,6 +87,10 @@ pub struct MiceWindow {
     selected: Option<String>,
     /// Profile chosen per device, by sector address.
     chosen_profiles: HashMap<String, u16>,
+    /// The open profile editor and the device it edits.
+    editor: Option<(String, Entity<ProfileEditor>)>,
+    _editor_subscription: Option<Subscription>,
+    backup_dir: PathBuf,
 }
 
 impl MiceWindow {
@@ -96,6 +106,9 @@ impl MiceWindow {
             in_flight: HashSet::new(),
             selected: None,
             chosen_profiles: HashMap::new(),
+            editor: None,
+            _editor_subscription: None,
+            backup_dir: state::default_backup_dir(),
         };
         this.start_discovery(cx);
         this
@@ -136,7 +149,122 @@ impl MiceWindow {
         snapshot.onboard.as_ref()?.as_ref().ok()?.profiles.as_ref().ok()
     }
 
+    /// The open profile editor, if any.
+    pub fn editor(&self) -> Option<&Entity<ProfileEditor>> {
+        self.editor.as_ref().map(|(_, e)| e)
+    }
+
+    /// Where pre-write backups are saved.
+    pub fn set_backup_dir(&mut self, dir: PathBuf) {
+        self.backup_dir = dir;
+    }
+
+    /// True when the shown profile can be edited: a write-verified device, a
+    /// user profile that decoded, and no read in progress.
+    pub fn can_edit_shown_profile(&self) -> bool {
+        self.editable_profile().is_some()
+    }
+
+    fn editable_profile(&self) -> Option<(&DeviceEntry, &DeviceSnapshot, &lg_snapshot::ProfileSnapshot)> {
+        let id = self.selected.as_ref()?;
+        let entry = self.devices.iter().find(|d| &d.id == id)?;
+        if !entry.write_verified() || self.in_flight.contains(id) {
+            return None;
+        }
+        let snapshot = self.reads.get(id)?.snapshot()?;
+        let set = self.profile_set(id)?;
+        let shown = state::shown_profile(set, self.chosen_profiles.get(id).copied())?;
+        let profile = set.profiles.iter().find(|p| p.address == shown)?;
+        (!profile.factory && profile.content.is_ok()).then_some((entry, snapshot.as_ref(), profile))
+    }
+
     // ---- commands ----
+
+    /// Open the editor for the shown profile.
+    pub fn edit_profile(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let Some((entry, snapshot, profile)) = self.editable_profile() else { return };
+        let Ok(content) = profile.content.clone() else { return };
+        let (id, address, title) = (entry.id.clone(), profile.address, profile.title.clone());
+        let range = snapshot.dpi_range.as_ref().and_then(|r| r.as_ref().ok()).cloned();
+        let rates = snapshot.polling_rates_hz.as_ref().and_then(|r| r.as_ref().ok()).cloned().unwrap_or_default();
+        let g502_layout = present::is_g502_layout(entry, &content);
+
+        let editor = cx.new(|cx| ProfileEditor::new(address, content, range, rates, g502_layout, window, cx));
+        self._editor_subscription = Some(cx.subscribe_in(&editor, window, Self::on_editor_event));
+        self.editor = Some((id, editor.clone()));
+        window.open_sheet(cx, move |sheet, _, _| {
+            sheet.title(format!("Edit {title}")).size(rems(32.)).child(editor.clone())
+        });
+        cx.notify();
+    }
+
+    fn on_editor_event(
+        &mut self,
+        _: &Entity<ProfileEditor>,
+        event: &ProfileEditorEvent,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        match event {
+            ProfileEditorEvent::Cancel => self.close_editor(window, cx),
+            ProfileEditorEvent::Save(edits) => self.save_edits(edits.clone(), window, cx),
+        }
+    }
+
+    fn close_editor(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.editor = None;
+        self._editor_subscription = None;
+        window.close_sheet(cx);
+        cx.notify();
+    }
+
+    /// Write the editor's edits through the guarded edit path, off the UI
+    /// thread, then show the device as re-read after the write.
+    fn save_edits(&mut self, edits: Vec<ProfileEdit>, window: &mut Window, cx: &mut Context<Self>) {
+        let Some((id, editor)) = self.editor.clone() else { return };
+        let Some(entry) = self.devices.iter().find(|d| d.id == id).cloned() else { return };
+        if !self.in_flight.insert(id.clone()) {
+            editor.update(cx, |e, cx| e.save_failed("The mouse is being read. Try again in a moment.", cx));
+            return;
+        }
+        let address = editor.read(cx).address();
+        let backup_dir = self.backup_dir.clone();
+        cx.notify();
+        cx.spawn_in(window, async move |this, cx| {
+            let result = cx
+                .background_spawn(async move { lg_snapshot::edit_entry(&entry, address, &edits, &backup_dir) })
+                .await;
+            this.update_in(cx, |this, window, cx| this.apply_save(id, result, window, cx)).ok();
+        })
+        .detach();
+    }
+
+    fn apply_save(
+        &mut self,
+        id: String,
+        result: Result<DeviceSnapshot, EditError>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        self.in_flight.remove(&id);
+        match result {
+            Ok(snapshot) => {
+                self.reads.insert(id, DeviceRead::Ready(Arc::new(snapshot)));
+                if self.editor.is_some() {
+                    self.close_editor(window, cx);
+                }
+                window.push_notification(Notification::success("Saved to the mouse"), cx);
+            }
+            Err(e) => {
+                if let Some((_, editor)) = &self.editor {
+                    editor.update(cx, |editor, cx| editor.save_failed(e.to_string(), cx));
+                } else {
+                    window.push_notification(Notification::error(e.to_string()).title("Couldn't save"), cx);
+                }
+            }
+        }
+        cx.notify();
+    }
 
     /// Re-run discovery, then re-read every device.
     pub fn refresh(&mut self, cx: &mut Context<Self>) {
@@ -260,6 +388,9 @@ impl MiceWindow {
         });
     }
 
+    fn on_edit_profile(&mut self, _: &EditProfile, window: &mut Window, cx: &mut Context<Self>) {
+        self.edit_profile(window, cx);
+    }
     fn on_show_device_info(&mut self, _: &ShowDeviceInfo, window: &mut Window, cx: &mut Context<Self>) {
         self.show_device_info(window, cx);
     }
@@ -488,6 +619,14 @@ impl MiceWindow {
                     .into_any_element();
             }
         };
+        let can_edit = self.can_edit_shown_profile();
+        let edit_unavailable = if !entry.write_verified() {
+            "Editing isn't verified for this mouse yet"
+        } else if set.factory {
+            "Factory profiles can't be edited"
+        } else {
+            "The mouse is being read"
+        };
         let shown = state::shown_profile(set, self.chosen_profiles.get(&entry.id).copied());
         let shown_ix = set.profiles.iter().position(|p| Some(p.address) == shown).unwrap_or(0);
         let addresses: Vec<u16> = set.profiles.iter().map(|p| p.address).collect();
@@ -512,7 +651,26 @@ impl MiceWindow {
                     "No user profiles are stored on this mouse, so it runs its factory profile.",
                 ))
             })
-            .child(tabs)
+            .child(
+                h_flex()
+                    .items_end()
+                    .gap_4()
+                    .child(div().flex_1().min_w_0().child(tabs))
+                    .child(
+                        Button::new("edit-profile")
+                            .small()
+                            .label("Edit…")
+                            .disabled(!can_edit)
+                            .map(|button| {
+                                if can_edit {
+                                    button.tooltip_with_action("Edit this profile", &EditProfile, Some(KEY_CONTEXT))
+                                } else {
+                                    button.tooltip(edit_unavailable)
+                                }
+                            })
+                            .on_click(cx.listener(|this, _, window, cx| this.edit_profile(window, cx))),
+                    ),
+            )
             .when_some(set.profiles.get(shown_ix).cloned(), |this, p| {
                 let g502_layout = p.content.as_ref().is_ok_and(|c| present::is_g502_layout(entry, c));
                 let live_dpi = s.sensor_dpi.as_ref().and_then(|r| r.as_ref().ok()).map(|d| d.current);
@@ -602,6 +760,7 @@ impl Render for MiceWindow {
             .on_action(cx.listener(Self::on_previous_device))
             .on_action(cx.listener(Self::on_next_profile))
             .on_action(cx.listener(Self::on_previous_profile))
+            .on_action(cx.listener(Self::on_edit_profile))
             .on_action(cx.listener(Self::on_show_device_info))
             .on_action(cx.listener(Self::on_toggle_theme))
             .items_stretch()

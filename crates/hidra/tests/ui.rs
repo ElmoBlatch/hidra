@@ -197,3 +197,91 @@ async fn sidebar_click_and_keyboard_switch_devices(cx: &mut TestAppContext) {
         }
     });
 }
+
+/// The viewer's whole edit flow against a simulated mouse: open the editor
+/// from the keyboard, change values, save, and see the device re-read.
+#[gpui_kit::test]
+async fn editing_a_profile_saves_to_the_simulated_mouse(cx: &mut TestAppContext) {
+    use gpui_kit::component::WindowExt as _;
+    use lg_snapshot::DeviceSource;
+
+    let source = Source::demo().unwrap();
+    let Source::Fixed(entries) = &source else { unreachable!() };
+    let DeviceSource::Sim(memory) = entries[0].source.clone() else { unreachable!() };
+    let backups = std::env::temp_dir().join(format!("hidra-ui-test-{}", std::process::id()));
+    let (handle, view) = open(cx, source);
+    cx.update(|cx| view.update(cx, |v, _| v.set_backup_dir(backups.clone())));
+    settle(cx, handle, &view).await;
+    cx.update(|cx| assert!(view.read(cx).can_edit_shown_profile()));
+
+    cx.update_window(handle, |_, window, cx| {
+        window.render_frame(cx);
+        window.press("ctrl-e", cx);
+    })
+    .unwrap();
+    cx.run_until_parked();
+    let editor = cx.update(|cx| view.read(cx).editor().cloned()).expect("Ctrl+E opens the editor");
+    cx.update_window(handle, |_, window, cx| assert!(window.has_active_sheet(cx))).unwrap();
+    cx.update(|cx| assert_eq!(editor.read(cx).pending_edits(cx), Ok(vec![]), "nothing changed yet"));
+
+    // An off-step value is reported and nothing is written.
+    cx.update_window(handle, |_, window, cx| {
+        editor.update(cx, |e, cx| {
+            e.set_dpi_text(0, "3225", window, cx);
+            e.save(cx);
+        });
+    })
+    .unwrap();
+    cx.run_until_parked();
+    cx.update(|cx| {
+        assert!(editor.read(cx).error().is_some_and(|m| m.contains("multiple of 50")));
+        assert!(!editor.read(cx).is_saving());
+    });
+    assert_eq!(memory.lock().unwrap().begin_writes, 0);
+
+    // A valid change saves, closes the editor and shows the new value.
+    cx.update_window(handle, |_, window, cx| {
+        editor.update(cx, |e, cx| {
+            e.set_dpi_text(0, "3200", window, cx);
+            e.set_default_stage(2, cx);
+            e.save(cx);
+        });
+    })
+    .unwrap();
+    settle(cx, handle, &view).await;
+    cx.update_window(handle, |_, window, cx| {
+        window.render_frame(cx);
+        assert!(!window.has_active_sheet(cx), "the editor closes after a successful save");
+    })
+    .unwrap();
+    cx.update(|cx| {
+        let v = view.read(cx);
+        assert!(v.editor().is_none());
+        let id = v.selected_device().unwrap().to_string();
+        let Some(DeviceRead::Ready(s)) = v.device_read(&id) else { panic!("device is shown as read") };
+        let set = s.onboard.as_ref().unwrap().as_ref().unwrap().profiles.as_ref().unwrap();
+        let c = set.profiles[0].content.as_ref().unwrap();
+        assert_eq!(c.dpi_stages, [3200, 5150, 8500, 12000, 0]);
+        assert_eq!(c.default_stage, 2);
+        assert_eq!(c.buttons[5], "key F24");
+    });
+    let m = memory.lock().unwrap();
+    assert_eq!(m.begin_writes, 1, "one sector write");
+    assert_eq!(&m.sectors[&1][3..5], &3200u16.to_le_bytes());
+    drop(m);
+    let _ = std::fs::remove_dir_all(&backups);
+}
+
+#[gpui_kit::test]
+async fn replayed_captures_offer_no_editing(cx: &mut TestAppContext) {
+    let source = Source::Replay {
+        log: capture("g502-proteus-spectrum-c332.log"),
+        segment: Some("Logitech Gaming Mouse G502".into()),
+    };
+    let (handle, view) = open(cx, source);
+    settle(cx, handle, &view).await;
+    cx.update(|cx| assert!(!view.read(cx).can_edit_shown_profile()));
+    cx.update_window(handle, |_, window, cx| window.press("ctrl-e", cx)).unwrap();
+    cx.run_until_parked();
+    cx.update(|cx| assert!(view.read(cx).editor().is_none()));
+}

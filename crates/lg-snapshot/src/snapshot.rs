@@ -151,6 +151,8 @@ pub struct ProfileContent {
     pub shift_stage: u8,
     /// One label per button, in device order.
     pub buttons: Vec<String>,
+    /// The decoded binding behind each label.
+    pub bindings: Vec<lg_profiles::ButtonBinding>,
     pub leds: Vec<LedSnapshot>,
 }
 
@@ -281,6 +283,7 @@ fn read_profile<T: Transport>(dev: &mut Device<T>, address: u16, d: &Descriptor)
         default_stage: p.default_stage(),
         shift_stage: p.switched_stage(),
         buttons: p.buttons().iter().map(|b| b.label()).collect(),
+        bindings: p.buttons(),
         leds,
     })
 }

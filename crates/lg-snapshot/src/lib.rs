@@ -23,6 +23,7 @@ pub use snapshot::{
 };
 pub use source::{
     Connection, DeviceEntry, DeviceSource, ReadError, discover, open_entry, read_entry, replay_entries, simulated_entry,
+    simulated_entry_from_log,
 };
 pub use backup::save_backup;
 pub use edit::{EditError, EditPlan, WRITE_VERIFIED_PIDS, commit_edit, edit_entry, plan_edit};

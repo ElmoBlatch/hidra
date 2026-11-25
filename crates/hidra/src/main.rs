@@ -17,6 +17,10 @@ struct Cli {
     /// Device name within the replay capture (default: every device in it).
     #[arg(long, requires = "replay")]
     segment: Option<String>,
+    /// Use a simulated G502 Proteus Spectrum instead of hardware. Edits are
+    /// kept in memory only, so this is safe to play with.
+    #[arg(long, conflicts_with = "replay")]
+    demo: bool,
     /// Start in the light theme (default: dark).
     #[arg(long)]
     light: bool,
@@ -24,9 +28,16 @@ struct Cli {
 
 fn main() {
     let cli = Cli::parse();
-    let source = match cli.replay.clone() {
-        Some(log) => Source::Replay { log, segment: cli.segment },
-        None => Source::Hardware,
+    let source = match (cli.demo, cli.replay.clone()) {
+        (true, _) => match Source::demo() {
+            Ok(source) => source,
+            Err(e) => {
+                eprintln!("hidra: couldn't start demo mode: {e}");
+                std::process::exit(1);
+            }
+        },
+        (false, Some(log)) => Source::Replay { log, segment: cli.segment },
+        (false, None) => Source::Hardware,
     };
 
     gpui_kit::application().with_assets(gpui_kit::assets::Assets).run(move |cx| {

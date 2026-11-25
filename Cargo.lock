@@ -3360,6 +3360,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "gpui-kit",
+ "lg-profiles",
  "lg-snapshot",
 ]
 

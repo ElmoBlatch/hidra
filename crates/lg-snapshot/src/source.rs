@@ -165,8 +165,20 @@ pub fn replay_entries(log: &Path, segment: Option<&str>) -> Result<Vec<DeviceEnt
 /// life of the returned entry, so the whole edit path can be exercised
 /// without hardware.
 pub fn simulated_entry(log: &Path, segment: &str) -> Result<DeviceEntry, ReadError> {
-    let replay = replay_entries(log, Some(segment))?.remove(0);
-    let mut dev = open_entry(&replay)?;
+    let text = std::fs::read_to_string(log).map_err(|e| ReadError::Other(format!("reading {}: {e}", log.display())))?;
+    simulated_entry_from_log(&text, segment)
+}
+
+/// [`simulated_entry`] from capture text already in memory.
+pub fn simulated_entry_from_log(text: &str, segment: &str) -> Result<DeviceEntry, ReadError> {
+    let seg = parse_log(text)
+        .into_iter()
+        .find(|s| s.name == segment)
+        .ok_or_else(|| ReadError::Other(format!("no segment named \"{segment}\" in the capture")))?;
+    let model = seg.name.clone();
+    let mut dev =
+        Device::open_with_timeout(AnyTransport::Replay(ReplayTransport::new(seg)), DEVICE_INDEX_DIRECT, REPLAY_TIMEOUT)
+            .map_err(|e| ReadError::Unreachable(e.to_string()))?;
     let other = |e: lg_hidpp::Error| ReadError::Other(format!("reading the capture: {e}"));
     let descriptor = onboard_profiles::info_raw(&mut dev).map_err(other)?;
     let d = lg_profiles::Descriptor::parse(&descriptor)
@@ -191,7 +203,7 @@ pub fn simulated_entry(log: &Path, segment: &str) -> Result<DeviceEntry, ReadErr
     Ok(DeviceEntry {
         id: format!("sim:{segment}"),
         product: 0,
-        model: replay.model,
+        model,
         connection: Connection::Simulated,
         source: DeviceSource::Sim(SimMemory::new(descriptor, sectors, active).shared()),
     })

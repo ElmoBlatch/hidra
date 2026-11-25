@@ -84,3 +84,53 @@ fn lightspeed_summary_and_factory_profile() {
     assert!(stages[0].is_shift, "the sniper button drops to stage 1");
     assert_eq!(stages.iter().filter_map(|r| r.dpi).collect::<Vec<_>>(), [400, 800, 1600, 3200, 6400]);
 }
+
+#[test]
+fn form_edits_only_reports_what_changed_and_validates() {
+    use hidra::edit_form::{FormValues, action_choices, change_count_label, form_edits};
+    use lg_profiles::{ButtonBinding, ProfileEdit};
+
+    let (_, s) = snapshot("g502-proteus-spectrum-c332.log", "Logitech Gaming Mouse G502");
+    let set = s.onboard.as_ref().unwrap().as_ref().unwrap().profiles.as_ref().unwrap();
+    let c = set.active().unwrap().content.as_ref().unwrap();
+    let range = s.dpi_range.as_ref().unwrap().as_ref().unwrap();
+
+    let unchanged = FormValues::from_profile(c);
+    assert_eq!(unchanged.dpi[4], "", "an unused stage shows as empty");
+    assert_eq!(form_edits(c, &unchanged, Some(range)), Ok(vec![]));
+
+    let mut form = unchanged.clone();
+    form.dpi[0] = "3,200".into();
+    form.polling_hz = 500;
+    form.buttons[8] = ButtonBinding::parse("key:F13").unwrap();
+    assert_eq!(
+        form_edits(c, &form, Some(range)),
+        Ok(vec![
+            ProfileEdit::SetDpi { stage: 0, dpi: 3200 },
+            ProfileEdit::SetReportRate(500),
+            ProfileEdit::SetButton { index: 8, binding: ButtonBinding::parse("key:F13").unwrap() },
+        ])
+    );
+
+    let invalid = |f: &dyn Fn(&mut FormValues)| {
+        let mut form = unchanged.clone();
+        f(&mut form);
+        form_edits(c, &form, Some(range)).unwrap_err()
+    };
+    assert!(invalid(&|f| f.dpi[1] = "abc".into()).contains("Stage 2"));
+    assert!(invalid(&|f| f.dpi[1] = "5125".into()).contains("multiple of 50"));
+    assert!(invalid(&|f| f.dpi[1] = "20000".into()).contains("50 to 12,000"));
+    assert!(invalid(&|f| f.dpi[3] = String::new()).contains("default stage"));
+    assert!(invalid(&|f| f.default_stage = 4).contains("default stage"));
+
+    // F24 is a standard action; Ctrl+C is not, so it is offered first as "keep".
+    let (choices, current) = action_choices(c.bindings[5]);
+    assert_eq!(choices[current].label, "F24");
+    let ctrl_c = ButtonBinding::parse("key:ctrl+c").unwrap();
+    let (choices, current) = action_choices(ctrl_c);
+    assert_eq!((current, choices[0].binding), (0, ctrl_c));
+
+    assert_eq!(change_count_label(0), "No changes");
+    assert_eq!(change_count_label(1), "1 change");
+    assert_eq!(change_count_label(3), "3 changes");
+}

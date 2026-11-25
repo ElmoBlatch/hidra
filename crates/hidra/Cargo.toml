@@ -16,6 +16,7 @@ path = "src/main.rs"
 
 [dependencies]
 lg-snapshot.workspace = true
+lg-profiles.workspace = true
 clap.workspace = true
 gpui-kit = "0.11.0"
 
