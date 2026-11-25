@@ -55,9 +55,17 @@ pub struct DeviceEntry {
     pub model: String,
     pub connection: Connection,
     pub source: DeviceSource,
+    /// USB/HID++ product ID; 0 for replayed captures.
+    pub product: u16,
 }
 
 impl DeviceEntry {
+    /// True when profile edits are enabled for this device: live hardware of
+    /// a model whose write path has been verified.
+    pub fn write_verified(&self) -> bool {
+        matches!(self.source, DeviceSource::Hidraw(_)) && crate::WRITE_VERIFIED_PIDS.contains(&self.product)
+    }
+
     /// Human-readable location: `/dev/hidraw7`, or the capture file name.
     pub fn location(&self) -> String {
         match &self.source {
@@ -91,6 +99,7 @@ pub fn discover() -> io::Result<Vec<DeviceEntry>> {
         .filter(|n| n.kind == NodeKind::Device)
         .map(|n| DeviceEntry {
             id: n.dev_path.display().to_string(),
+            product: n.product,
             model: n.model_name().to_string(),
             connection: match n.via_receiver {
                 Some(pid) => Connection::Receiver(pid),
@@ -110,6 +119,7 @@ pub fn replay_entries(log: &Path, segment: Option<&str>) -> Result<Vec<DeviceEnt
         .filter(|s| segment.is_none_or(|name| s.name == name))
         .map(|s| DeviceEntry {
             id: format!("replay:{}", s.name),
+            product: 0,
             model: s.name.clone(),
             connection: Connection::Replay,
             source: DeviceSource::Replay { log: log.to_path_buf(), segment: s.name },

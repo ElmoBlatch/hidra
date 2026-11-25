@@ -1,15 +1,18 @@
-//! Read a Logitech G502 into a plain, owned snapshot.
+//! Shared device operations for the `hidractl` CLI and the `hidra` viewer:
+//! find devices, read one into a plain [`DeviceSnapshot`], back up its onboard
+//! memory, and apply guarded profile edits.
 //!
-//! This crate is the shared "read everything" layer for the `hidractl` CLI and
-//! the `hidra` desktop viewer. It is read-only by construction: it only
-//! calls the getter functions that `lg-hidpp` exposes, and `lg-hidpp` has no
-//! write path.
+//! Reading: [`discover`] / [`replay_entries`], then [`read_entry`].
+//! Writing: [`plan_edit`] builds a byte-level change from field edits and
+//! checks it; [`commit_edit`] backs the device up and writes through
+//! `lg_hidpp`'s compare-and-swap `replace_sector`. [`edit_entry`] does both
+//! for a discovered device.
 //!
-//! The entry points are [`discover`] / [`replay_entries`] to find devices and
-//! [`read_entry`] to open one and read a [`DeviceSnapshot`]. All of them block
-//! (hidraw polls can take up to about a second per request), so a UI must call
-//! them off its main thread.
+//! Everything blocks (hidraw polls can take up to about a second per
+//! request), so a UI must call these off its main thread.
 
+mod backup;
+mod edit;
 mod snapshot;
 mod source;
 mod transport;
@@ -19,6 +22,8 @@ pub use snapshot::{
     ProfileSnapshot, Reading, SensorDpi, read_device,
 };
 pub use source::{Connection, DeviceEntry, DeviceSource, ReadError, discover, open_entry, read_entry, replay_entries};
+pub use backup::save_backup;
+pub use edit::{EditError, EditPlan, WRITE_VERIFIED_PIDS, commit_edit, edit_entry, plan_edit};
 pub use transport::AnyTransport;
 
 /// Timeout used for replayed captures: long enough for the replay transport,

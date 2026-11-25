@@ -5,11 +5,11 @@
 //! compare-and-swap write in `lg-hidpp` (see `set_dpi.rs`).
 
 mod report;
-mod set_dpi;
+mod set;
 
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
@@ -18,7 +18,6 @@ use lg_hidpp::features::{self, adjustable_dpi, battery_voltage, device_info, dev
 use lg_hidpp::replay::{ReplayTransport, parse_log};
 use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidrawTransport, Transport};
 use lg_profiles::{Descriptor, Directory, Profile, Sector};
-use serde::Serialize;
 
 #[derive(Parser)]
 #[command(version, about = "Inspector, backup, device-report and DPI tool for Logitech HID++ mice")]
@@ -49,21 +48,43 @@ enum Command {
         #[arg(long, default_value = "backups")]
         out: PathBuf,
     },
-    /// Change one DPI stage of an onboard profile. Dry run unless --yes is given.
-    SetDpi {
-        /// Profile number as shown by `profiles` plus one (1 = first profile).
+    /// Change settings of an onboard profile. Dry run unless --yes is given.
+    Set {
+        /// Profile number (1 = first profile).
         #[arg(long)]
         profile: u8,
-        /// DPI stage, 1 to 5.
+        /// DPI stage as STAGE=DPI, e.g. --dpi 1=3200. 0 disables a stage. Repeatable.
+        #[arg(long, value_name = "STAGE=DPI")]
+        dpi: Vec<String>,
+        /// The stage the profile starts on, 1 to 5.
         #[arg(long)]
-        stage: u8,
-        /// New DPI value; 0 disables the stage.
+        default_stage: Option<u8>,
+        /// Polling rate in Hz.
         #[arg(long)]
-        dpi: u16,
+        polling: Option<u16>,
+        /// Button as NAME=ACTION, e.g. --button G6=key:F24, --button G7=dpi-down. Repeatable.
+        /// Actions: left right middle back forward dpi-up dpi-down dpi-cycle dpi-default dpi-shift
+        /// profile-next profile-previous profile-cycle g-shift battery tilt-left tilt-right disabled
+        /// key:[ctrl+][shift+][alt+][super+]NAME
+        #[arg(long, value_name = "NAME=ACTION")]
+        button: Vec<String>,
         /// Actually write. Without this the change is only shown.
         #[arg(long)]
         yes: bool,
         /// Where the automatic pre-write backup goes.
+        #[arg(long, default_value = "backups")]
+        backup_dir: PathBuf,
+    },
+    /// Change one DPI stage: shorthand for `set --dpi STAGE=DPI`.
+    SetDpi {
+        #[arg(long)]
+        profile: u8,
+        #[arg(long)]
+        stage: u8,
+        #[arg(long)]
+        dpi: u16,
+        #[arg(long)]
+        yes: bool,
         #[arg(long, default_value = "backups")]
         backup_dir: PathBuf,
     },
@@ -82,11 +103,29 @@ fn main() -> Result<()> {
     if let Command::List = cli.command {
         return list();
     }
-    if let Command::SetDpi { profile, stage, dpi, yes, backup_dir } = &cli.command {
-        if cli.replay.is_some() {
-            bail!("set-dpi writes to a live device; it cannot be combined with --replay");
+    let edit = match &cli.command {
+        Command::SetDpi { profile, stage, dpi, yes, backup_dir } => {
+            Some((*profile, set::Request { dpi: vec![(*stage, *dpi)], ..Default::default() }, *yes, backup_dir))
         }
-        return set_dpi::run(cli.device.as_deref(), *profile, *stage, *dpi, *yes, backup_dir);
+        Command::Set { profile, dpi, default_stage, polling, button, yes, backup_dir } => {
+            let mut request =
+                set::Request { default_stage: *default_stage, polling_hz: *polling, ..Default::default() };
+            for pair in dpi {
+                let (stage, value) = set::split_pair(pair)?;
+                request.dpi.push((stage.parse().context("stage must be a number")?, value.parse().context("DPI must be a number")?));
+            }
+            for pair in button {
+                request.buttons.push(set::split_pair(pair)?);
+            }
+            Some((*profile, request, *yes, backup_dir))
+        }
+        _ => None,
+    };
+    if let Some((profile, request, yes, backup_dir)) = edit {
+        if cli.replay.is_some() {
+            bail!("editing writes to a live device; it cannot be combined with --replay");
+        }
+        return set::run(cli.device.as_deref(), profile, request, yes, backup_dir);
     }
     if let Command::Report { out, include_macros } = &cli.command {
         if cli.replay.is_some() {
@@ -103,7 +142,7 @@ fn main() -> Result<()> {
             Command::Info => info(&mut dev)?,
             Command::Profiles => profiles(&mut dev)?,
             Command::Backup { out } => backup(&mut dev, &label, out)?,
-            Command::List | Command::Report { .. } | Command::SetDpi { .. } => unreachable!(),
+            Command::List | Command::Report { .. } | Command::SetDpi { .. } | Command::Set { .. } => unreachable!(),
         }
         println!();
     }
@@ -266,6 +305,7 @@ fn info(dev: &mut Dev) -> Result<()> {
             m => format!("{m}"),
         });
         opt("active profile", onboard_profiles::active_profile(dev), |a| format!("address {a:#06x}"));
+        opt("active DPI stage", onboard_profiles::active_resolution_index(dev), |i| format!("{}", i + 1));
     }
     println!("  features:");
     for f in dev.features() {
@@ -284,7 +324,7 @@ fn info(dev: &mut Dev) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn read_descriptor<T: Transport>(dev: &mut Device<T>) -> Result<Descriptor> {
+fn read_descriptor<T: Transport>(dev: &mut Device<T>) -> Result<Descriptor> {
     let raw = onboard_profiles::info_raw(dev).context("device has no onboard-profiles feature")?;
     let d = Descriptor::parse(&raw).context("short onboard-profiles descriptor")?;
     if !d.layout_supported() {
@@ -342,78 +382,11 @@ fn profiles(dev: &mut Dev) -> Result<()> {
     Ok(())
 }
 
-#[derive(Serialize)]
-struct Manifest {
-    tool: String,
-    created_unix: u64,
-    device: String,
-    protocol: String,
-    descriptor_hex: String,
-    active_profile: Option<u16>,
-    sectors: Vec<SectorRecord>,
-}
-
-#[derive(Serialize)]
-struct SectorRecord {
-    address: String,
-    file: Option<String>,
-    crc_valid: Option<bool>,
-    erased: bool,
-    zeroed: bool,
-    error: Option<String>,
-}
-
-pub(crate) fn backup<T: Transport>(dev: &mut Device<T>, label: &str, out: &Path) -> Result<()> {
-    let raw = onboard_profiles::info_raw(dev)?;
-    let d = read_descriptor(dev)?;
-    let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-    let slug: String = label.chars().map(|c| if c.is_ascii_alphanumeric() { c } else { '-' }).collect();
-    let dir = out.join(format!("{now}-{}", slug.trim_matches('-')));
-    std::fs::create_dir_all(&dir).with_context(|| format!("creating {}", dir.display()))?;
-
-    let mut addresses: Vec<u16> = (0..d.sector_count as u16).collect();
-    addresses.extend((1..=d.rom_profile_count as u16).map(|n| 0x0100 | n));
-    let mut records = Vec::new();
-    for addr in addresses {
-        match onboard_profiles::read_sector(dev, addr, d.sector_size) {
-            Ok(bytes) => {
-                let s = Sector::new(addr, bytes);
-                let file = format!("sector-{addr:04x}.bin");
-                std::fs::write(dir.join(&file), &s.bytes)?;
-                records.push(SectorRecord {
-                    address: format!("{addr:#06x}"),
-                    file: Some(file),
-                    crc_valid: (!s.is_rom() && !s.is_erased() && !s.is_zeroed()).then(|| s.crc_valid()),
-                    erased: s.is_erased(),
-                    zeroed: s.is_zeroed(),
-                    error: None,
-                });
-            }
-            Err(e) => records.push(SectorRecord {
-                address: format!("{addr:#06x}"),
-                file: None,
-                crc_valid: None,
-                erased: false,
-                zeroed: false,
-                error: Some(e.to_string()),
-            }),
-        }
-    }
-    let (maj, min) = dev.protocol_version();
-    let manifest = Manifest {
-        tool: format!("hidractl {}", env!("CARGO_PKG_VERSION")),
-        created_unix: now,
-        device: label.to_string(),
-        protocol: format!("{maj}.{min}"),
-        descriptor_hex: raw.iter().map(|b| format!("{b:02x}")).collect::<Vec<_>>().join(" "),
-        active_profile: onboard_profiles::active_profile(dev).ok(),
-        sectors: records,
-    };
-    std::fs::write(dir.join("manifest.json"), serde_json::to_string_pretty(&manifest)?)?;
-    let ok = manifest.sectors.iter().filter(|s| s.file.is_some()).count();
-    println!("  saved {ok}/{} sectors to {}", manifest.sectors.len(), dir.display());
-    for s in manifest.sectors.iter().filter(|s| s.error.is_some()) {
-        println!("    {}: {}", s.address, s.error.as_deref().unwrap_or(""));
+fn backup<T: Transport>(dev: &mut Device<T>, label: &str, out: &Path) -> Result<()> {
+    let (dir, failed) = lg_snapshot::save_backup(dev, label, out).map_err(anyhow::Error::msg)?;
+    println!("  saved backup to {}", dir.display());
+    if failed > 0 {
+        println!("  {failed} sectors could not be read; see manifest.json");
     }
     Ok(())
 }

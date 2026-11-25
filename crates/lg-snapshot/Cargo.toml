@@ -1,6 +1,6 @@
 [package]
 name = "lg-snapshot"
-description = "Read a Logitech G502 into a plain, owned snapshot (read-only)"
+description = "Device snapshots, backups and guarded profile edits for Logitech HID++ mice"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
@@ -10,3 +10,5 @@ publish.workspace = true
 lg-hidpp.workspace = true
 lg-profiles.workspace = true
 thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true

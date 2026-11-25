@@ -3371,6 +3371,7 @@ dependencies = [
  "clap",
  "lg-hidpp",
  "lg-profiles",
+ "lg-snapshot",
  "serde",
  "serde_json",
 ]
@@ -4090,6 +4091,8 @@ version = "0.1.0"
 dependencies = [
  "lg-hidpp",
  "lg-profiles",
+ "serde",
+ "serde_json",
  "thiserror 2.0.21",
 ]
 

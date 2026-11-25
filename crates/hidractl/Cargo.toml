@@ -9,6 +9,7 @@ publish.workspace = true
 [dependencies]
 lg-hidpp.workspace = true
 lg-profiles.workspace = true
+lg-snapshot.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 serde.workspace = true

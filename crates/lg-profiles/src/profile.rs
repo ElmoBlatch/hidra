@@ -34,6 +34,32 @@ pub enum ProfileEdit {
     SetDpi { stage: usize, dpi: u16 },
     SetDefaultStage(u8),
     SetSwitchedStage(u8),
+    /// Polling rate in Hz. Stored as the report interval in milliseconds.
+    SetReportRate(u16),
+    /// Assign a button (primary layer). Macros and unknown bindings cannot be
+    /// assigned, only preserved.
+    SetButton { index: usize, binding: ButtonBinding },
+}
+
+impl ProfileEdit {
+    /// The sector bytes this edit is allowed to change (the CRC is extra).
+    pub fn offsets(&self) -> Vec<usize> {
+        match *self {
+            Self::SetDpi { stage, .. } => vec![DPI.start + stage * 2, DPI.start + stage * 2 + 1],
+            Self::SetDefaultStage(_) => vec![DEFAULT_DPI],
+            Self::SetSwitchedStage(_) => vec![SWITCHED_DPI],
+            Self::SetReportRate(_) => vec![REPORT_RATE],
+            Self::SetButton { index, .. } => (BUTTONS + index * 4..BUTTONS + index * 4 + 4).collect(),
+        }
+    }
+}
+
+/// What the device allows, for validating edits.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct EditLimits {
+    pub dpi: Option<DpiLimits>,
+    /// Supported polling rates in Hz; empty means "not known, do not allow".
+    pub report_rates_hz: Vec<u16>,
 }
 
 /// Device DPI limits from feature 0x2201.
@@ -130,43 +156,77 @@ impl Profile {
     }
 
     /// Return a copy with `edit` applied and the CRC recomputed.
+    /// Return a copy with one DPI-related `edit` applied and the CRC recomputed.
     pub fn apply(&self, edit: ProfileEdit, limits: Option<DpiLimits>) -> Result<Self, Error> {
+        self.apply_all(&[edit], &EditLimits { dpi: limits, report_rates_hz: Vec::new() })
+    }
+
+    /// Return a copy with every edit applied, in order, and the CRC
+    /// recomputed. The result is validated as a whole: the default stage must
+    /// be an enabled one.
+    pub fn apply_all(&self, edits: &[ProfileEdit], limits: &EditLimits) -> Result<Self, Error> {
         let mut bytes = self.sector.bytes.clone();
-        match edit {
-            ProfileEdit::SetDpi { stage, dpi } => {
-                if stage >= DPI_SLOTS {
-                    return Err(Error::NoSuchStage { stage });
-                }
-                if dpi != 0
-                    && let Some(l) = limits
-                {
-                    if dpi < l.min || dpi > l.max {
-                        return Err(Error::DpiOutOfRange { dpi, min: l.min, max: l.max });
+        for edit in edits {
+            match *edit {
+                ProfileEdit::SetDpi { stage, dpi } => {
+                    if stage >= DPI_SLOTS {
+                        return Err(Error::NoSuchStage { stage });
                     }
-                    if l.step > 0 && (dpi - l.min) % l.step != 0 {
-                        return Err(Error::DpiNotOnStep { dpi, step: l.step });
+                    if dpi != 0
+                        && let Some(l) = limits.dpi
+                    {
+                        if dpi < l.min || dpi > l.max {
+                            return Err(Error::DpiOutOfRange { dpi, min: l.min, max: l.max });
+                        }
+                        if l.step > 0 && (dpi - l.min) % l.step != 0 {
+                            return Err(Error::DpiNotOnStep { dpi, step: l.step });
+                        }
+                    }
+                    let o = DPI.start + stage * 2;
+                    bytes[o..o + 2].copy_from_slice(&dpi.to_le_bytes());
+                }
+                ProfileEdit::SetDefaultStage(s) => {
+                    if s as usize >= DPI_SLOTS {
+                        return Err(Error::NoSuchStage { stage: s as usize });
+                    }
+                    bytes[DEFAULT_DPI] = s;
+                }
+                ProfileEdit::SetSwitchedStage(s) => {
+                    if s as usize >= DPI_SLOTS {
+                        return Err(Error::NoSuchStage { stage: s as usize });
+                    }
+                    bytes[SWITCHED_DPI] = s;
+                }
+                ProfileEdit::SetReportRate(hz) => {
+                    if hz == 0 || !limits.report_rates_hz.contains(&hz) {
+                        return Err(Error::UnsupportedReportRate { hz, supported: limits.report_rates_hz.clone() });
+                    }
+                    bytes[REPORT_RATE] = (1000 / hz) as u8;
+                }
+                ProfileEdit::SetButton { index, binding } => {
+                    if index >= self.button_count {
+                        return Err(Error::NoSuchButton { index, count: self.button_count });
+                    }
+                    let o = BUTTONS + index * 4;
+                    // Already that action: keep the stored bytes exactly (the
+                    // device's own encodings differ in their unused bytes).
+                    let current: [u8; 4] = bytes[o..o + 4].try_into().expect("4 bytes");
+                    if ButtonBinding::decode(current) != binding {
+                        let encoded = binding.encode().ok_or(Error::BindingNotAssignable)?;
+                        bytes[o..o + 4].copy_from_slice(&encoded);
                     }
                 }
-                let o = DPI.start + stage * 2;
-                bytes[o..o + 2].copy_from_slice(&dpi.to_le_bytes());
-            }
-            ProfileEdit::SetDefaultStage(s) => {
-                if s as usize >= DPI_SLOTS {
-                    return Err(Error::NoSuchStage { stage: s as usize });
-                }
-                bytes[DEFAULT_DPI] = s;
-            }
-            ProfileEdit::SetSwitchedStage(s) => {
-                if s as usize >= DPI_SLOTS {
-                    return Err(Error::NoSuchStage { stage: s as usize });
-                }
-                bytes[SWITCHED_DPI] = s;
             }
         }
         let n = bytes.len();
         let crc = crc_ccitt(&bytes[..n - 2]);
         bytes[n - 2..].copy_from_slice(&crc.to_be_bytes());
-        Ok(Self { sector: Sector::new(self.sector.address, bytes), button_count: self.button_count })
+        let edited = Self { sector: Sector::new(self.sector.address, bytes), button_count: self.button_count };
+        let default = edited.default_stage() as usize;
+        if edited.dpi_stages().get(default).is_none_or(|&dpi| dpi == 0) {
+            return Err(Error::DefaultStageDisabled { stage: default });
+        }
+        Ok(edited)
     }
 }
 

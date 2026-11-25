@@ -15,12 +15,12 @@ mod directory;
 mod led;
 mod profile;
 
-pub use button::{ButtonBinding, MouseButtons, SpecialAction};
+pub use button::{ButtonBinding, MouseButtons, SpecialAction, hid_key_name, hid_key_usage};
 pub use crc::crc_ccitt;
 pub use descriptor::Descriptor;
 pub use directory::{Directory, DirectoryEntry};
 pub use led::{Led, LedMode};
-pub use profile::{DPI_SLOTS, DpiLimits, Profile, ProfileEdit, diff_offsets};
+pub use profile::{DPI_SLOTS, DpiLimits, EditLimits, Profile, ProfileEdit, diff_offsets};
 
 /// A raw onboard-memory sector with its trailing big-endian CRC-CCITT.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -75,4 +75,14 @@ pub enum Error {
     DpiOutOfRange { dpi: u16, min: u16, max: u16 },
     #[error("DPI {dpi} is not a multiple of the {step}-DPI step")]
     DpiNotOnStep { dpi: u16, step: u16 },
+    #[error("polling rate {hz} Hz is not supported (supported: {supported:?})")]
+    UnsupportedReportRate { hz: u16, supported: Vec<u16> },
+    #[error("button {index} does not exist (the device has {count})")]
+    NoSuchButton { index: usize, count: usize },
+    #[error("this kind of binding (macro or unknown) can be kept but not assigned")]
+    BindingNotAssignable,
+    #[error("the default DPI stage ({}) would be disabled", stage + 1)]
+    DefaultStageDisabled { stage: usize },
+    #[error("unrecognised action \"{0}\"")]
+    UnknownAction(String),
 }
