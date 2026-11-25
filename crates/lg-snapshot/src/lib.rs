@@ -13,6 +13,7 @@
 
 mod backup;
 mod edit;
+mod init;
 mod snapshot;
 mod source;
 mod transport;
@@ -27,6 +28,7 @@ pub use source::{
 };
 pub use backup::save_backup;
 pub use edit::{EditError, EditPlan, WRITE_VERIFIED_PIDS, commit_edit, edit_entry, plan_edit};
+pub use init::{InitOutcome, InitPlan, commit_initialize, plan_initialize, restore_from_backup};
 pub use transport::AnyTransport;
 
 /// Timeout used for replayed captures: long enough for the replay transport,

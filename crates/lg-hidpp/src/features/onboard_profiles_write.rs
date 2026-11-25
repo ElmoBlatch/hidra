@@ -112,3 +112,39 @@ pub fn replace_sector<T: Transport>(
         }
     }
 }
+
+/// Write `bytes` to a user sector exactly as given, then confirm by reading
+/// back. No compare-and-swap and no CRC requirement: this is the recovery
+/// path for putting a backup back, including sectors that were erased
+/// (all `0xff`, which never carries a valid CRC).
+pub fn restore_sector<T: Transport>(dev: &mut Device<T>, sector: u16, bytes: &[u8]) -> Result<()> {
+    let refuse = |reason: &str| Err(Error::WriteRefused { sector, reason: reason.to_string() });
+    if sector & 0xff00 != 0 {
+        return refuse("not a user sector");
+    }
+    if bytes.len() < 16 || bytes.len() > u16::MAX as usize {
+        return refuse("not a whole sector");
+    }
+    let size = bytes.len() as u16;
+    if read_sector(dev, sector, size)? == bytes {
+        return Ok(());
+    }
+    let ok = (0..ROLLBACK_ATTEMPTS)
+        .any(|_| send_sector(dev, sector, bytes).is_ok() && read_sector(dev, sector, size).is_ok_and(|now| now == bytes));
+    if ok {
+        Ok(())
+    } else {
+        Err(Error::WriteFailed { sector, cause: "restore did not read back correctly".into(), restored: false })
+    }
+}
+
+/// Make a profile the active one (function 3). `address` is what
+/// `GetActiveProfile` reports: a user profile's sector, or `0x0100 | n` for a
+/// factory profile. Not stored in flash: it changes which profile the mouse
+/// is running, like pressing the profile button.
+pub fn set_active_profile<T: Transport>(dev: &mut Device<T>, address: u16) -> Result<()> {
+    let idx = dev.require(PAGE)?;
+    let [hi, lo] = address.to_be_bytes();
+    dev.call(idx, 3, &[hi, lo, 0])?;
+    Ok(())
+}

@@ -18,6 +18,8 @@ pub enum Error {
     Malformed(String),
     #[error("device supports neither short nor long HID++ reports")]
     NoHidppReports,
+    #[error("the mouse is not connected to its receiver: it is switched off, asleep or out of range")]
+    NotConnected,
     #[error("refusing to write sector {sector:#06x}: {reason}")]
     WriteRefused { sector: u16, reason: String },
     #[error("writing sector {sector:#06x} failed ({cause}); original contents {}", if *.restored { "were restored and verified" } else { "could NOT be restored" })]

@@ -173,6 +173,16 @@ impl Transport for SimMouse {
                 self.reply(req, &d);
             }
             (IDX_ONBOARD, 2) => self.reply(req, &[1]),
+            (IDX_ONBOARD, 3) => {
+                let address = be16(0);
+                if m.sectors.contains_key(&address) {
+                    m.active_profile = address;
+                    m.active_stage = m.sectors[&address].get(1).copied().unwrap_or(0);
+                    self.reply(req, &[]);
+                } else {
+                    self.error(req, 0x02);
+                }
+            }
             (IDX_ONBOARD, 4) => {
                 let a = m.active_profile.to_be_bytes();
                 self.reply(req, &a);

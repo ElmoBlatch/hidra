@@ -7,6 +7,7 @@ use crate::transport::Transport;
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_millis(1000);
 const WAKE_RETRIES: u32 = 2;
+const WAKE_DELAY: Duration = Duration::from_millis(300);
 
 /// Feature type flags from `IFeatureSet.GetFeatureID`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -58,6 +59,13 @@ impl<T: Transport> Device<T> {
         dev.protocol = loop {
             match root::protocol_version(&mut dev) {
                 Err(Error::Timeout { .. }) if attempt < WAKE_RETRIES => attempt += 1,
+                // A receiver answers for a paired mouse that is not connected
+                // right now with a HID++ 1.0 error; give it a moment to wake.
+                Err(Error::Hidpp10(_)) if attempt < WAKE_RETRIES => {
+                    attempt += 1;
+                    std::thread::sleep(WAKE_DELAY);
+                }
+                Err(Error::Hidpp10(_)) => break Err(Error::NotConnected)?,
                 other => break other?,
             }
         };

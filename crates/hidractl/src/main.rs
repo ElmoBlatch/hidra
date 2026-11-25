@@ -6,6 +6,7 @@
 
 mod report;
 mod set;
+mod setup;
 
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
@@ -88,6 +89,25 @@ enum Command {
         #[arg(long, default_value = "backups")]
         backup_dir: PathBuf,
     },
+    /// Set up user profiles on a mouse whose onboard memory is blank, by
+    /// copying its factory profile. Dry run unless --yes is given.
+    InitProfiles {
+        #[arg(long)]
+        yes: bool,
+        /// Run on a model this has not been verified on. Needs --device.
+        #[arg(long, hide = true)]
+        allow_unverified: bool,
+        #[arg(long, default_value = "backups")]
+        backup_dir: PathBuf,
+    },
+    /// Write a backup's onboard memory back to the mouse it came from. Dry run unless --yes is given.
+    Restore {
+        /// A backup directory written by `backup`, `set` or `init-profiles`.
+        #[arg(long)]
+        backup: PathBuf,
+        #[arg(long)]
+        yes: bool,
+    },
     /// Write a shareable report (JSON with replayable traffic) for every Logitech HID++ device.
     Report {
         #[arg(long, default_value = "reports")]
@@ -127,6 +147,16 @@ fn main() -> Result<()> {
         }
         return set::run(cli.device.as_deref(), profile, request, yes, backup_dir);
     }
+    match &cli.command {
+        Command::InitProfiles { .. } | Command::Restore { .. } if cli.replay.is_some() => {
+            bail!("this writes to a live device; it cannot be combined with --replay")
+        }
+        Command::InitProfiles { yes, allow_unverified, backup_dir } => {
+            return setup::init_profiles(cli.device.as_deref(), *yes, *allow_unverified, backup_dir);
+        }
+        Command::Restore { backup, yes } => return setup::restore(cli.device.as_deref(), backup, *yes),
+        _ => {}
+    }
     if let Command::Report { out, include_macros } = &cli.command {
         if cli.replay.is_some() {
             bail!("report reads live devices; it cannot be combined with --replay");
@@ -142,7 +172,12 @@ fn main() -> Result<()> {
             Command::Info => info(&mut dev)?,
             Command::Profiles => profiles(&mut dev)?,
             Command::Backup { out } => backup(&mut dev, &label, out)?,
-            Command::List | Command::Report { .. } | Command::SetDpi { .. } | Command::Set { .. } => unreachable!(),
+            Command::List
+            | Command::Report { .. }
+            | Command::SetDpi { .. }
+            | Command::Set { .. }
+            | Command::InitProfiles { .. }
+            | Command::Restore { .. } => unreachable!(),
         }
         println!();
     }

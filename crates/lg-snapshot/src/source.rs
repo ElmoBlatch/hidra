@@ -193,12 +193,19 @@ pub fn simulated_entry_from_log(text: &str, segment: &str) -> Result<DeviceEntry
     for s in profile_sectors {
         sectors.insert(s, onboard_profiles::read_sector(&mut dev, s, d.sector_size).map_err(other)?);
     }
-    // The capture holds only the directory and profiles. Fill the rest the way
-    // the Proteus Spectrum reports unused memory (zeros), so a full backup
-    // can read every address; the factory profiles are placeholders.
-    let rom = (1..=d.rom_profile_count as u16).map(|n| 0x0100 | n);
+    // Factory profiles, where the capture recorded them.
+    let rom: Vec<u16> = (1..=d.rom_profile_count as u16).map(|n| 0x0100 | n).collect();
+    for &address in &rom {
+        if let Ok(bytes) = onboard_profiles::read_sector(&mut dev, address, d.sector_size) {
+            sectors.insert(address, bytes);
+        }
+    }
+    // Everything else reads the way the real mice report unused memory: zeros
+    // on a device with user profiles (Proteus Spectrum), erased `0xff` on one
+    // whose user memory was never written (LIGHTSPEED).
+    let fill = if sectors[&0].iter().all(|&b| b == 0xff) { 0xff } else { 0x00 };
     for address in (0..d.sector_count as u16).chain(rom) {
-        sectors.entry(address).or_insert_with(|| vec![0u8; d.sector_size as usize]);
+        sectors.entry(address).or_insert_with(|| vec![fill; d.sector_size as usize]);
     }
     Ok(DeviceEntry {
         id: format!("sim:{segment}"),
