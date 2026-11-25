@@ -17,7 +17,7 @@ use crate::{DeviceEntry, DeviceSnapshot, open_entry, read_device, save_backup};
 
 /// Product IDs whose profile layout and write sequence have been verified on
 /// real hardware. Everything else stays read-only.
-pub const WRITE_VERIFIED_PIDS: &[u16] = &[0xc332];
+pub const WRITE_VERIFIED_PIDS: &[u16] = &[0xc332, 0x407f];
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 pub enum EditError {

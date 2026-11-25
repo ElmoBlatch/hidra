@@ -7,9 +7,8 @@ use lg_hidpp::features::{adjustable_dpi, onboard_profiles};
 use lg_snapshot::{DeviceEntry, commit_initialize, discover, open_entry, plan_initialize, restore_from_backup};
 
 /// Models on which first-time profile setup has been verified on hardware.
-/// None yet: it passes on the simulated G502 LIGHTSPEED and is waiting for
-/// its first run on the real one.
-const INIT_VERIFIED_PIDS: &[u16] = &[];
+/// G502 LIGHTSPEED (0x407f): run on 2026-11-25, firmware MPM 17.00.B0008.
+const INIT_VERIFIED_PIDS: &[u16] = &[0x407f];
 
 fn pick(device: Option<&Path>, filter: impl Fn(&DeviceEntry) -> bool, none: &str) -> Result<DeviceEntry> {
     let mut entries: Vec<DeviceEntry> = discover()?

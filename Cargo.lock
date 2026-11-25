@@ -3356,7 +3356,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hidra"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "gpui-kit",
@@ -3366,7 +3366,7 @@ dependencies = [
 
 [[package]]
 name = "hidractl"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -4072,7 +4072,7 @@ checksum = "7a79a3332a6609480d7d0c9eab957bca6b455b91bb84e66d19f5ff66294b85b8"
 
 [[package]]
 name = "lg-hidpp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "libc",
  "thiserror 2.0.21",
@@ -4080,7 +4080,7 @@ dependencies = [
 
 [[package]]
 name = "lg-profiles"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "lg-hidpp",
  "thiserror 2.0.21",
@@ -4088,7 +4088,7 @@ dependencies = [
 
 [[package]]
 name = "lg-snapshot"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "lg-hidpp",
  "lg-profiles",

@@ -7,9 +7,11 @@ desktop viewer, a command-line inspector, and a device-report collector.
 ![hidra showing a profile's DPI stages, buttons and lighting](docs/screenshot-dark.png)
 
 **Status.** Reading works on any HID++ 2.0 device. Editing is deliberately
-narrow: on the G502 Proteus Spectrum, the one model where writes have been
-verified on hardware, you can change a profile's DPI stages, default stage,
-polling rate and button assignments, from the viewer or the command line.
+narrow: on the two models where writes have been verified on hardware (G502
+Proteus Spectrum and G502 LIGHTSPEED), you can change a profile's DPI stages,
+default stage, polling rate and button assignments, from the viewer or the
+command line. A LIGHTSPEED with factory-blank memory needs
+`hidractl init-profiles` once first.
 Protocol notes are in [RESEARCH.md](RESEARCH.md).
 
 Every write is compare-and-swap: it is refused unless the mouse still holds
@@ -23,7 +25,7 @@ taken first, and `hidractl restore` puts one back.
 | Device | USB ID | Connection | Read | Write |
 | --- | --- | --- | --- | --- |
 | G502 Proteus Spectrum | `046d:c332` | USB cable | Verified (firmware `U1 03.02.B0012`): info, three onboard profiles, factory profiles, full backup | Verified: DPI stages, default stage, polling rate, button assignments. Each changed, read back, and restored byte-for-byte |
-| G502 LIGHTSPEED | `046d:407f` | LIGHTSPEED receiver `046d:c539` | Verified (firmware `MPM 17.00.B0008`): info, battery, factory profile, full backup | Not enabled yet. First-time profile setup (`init-profiles`) is implemented and passes on a simulated LIGHTSPEED |
+| G502 LIGHTSPEED | `046d:407f` | LIGHTSPEED receiver `046d:c539` | Verified (firmware `MPM 17.00.B0008`): info, battery, factory profile, full backup | Verified: first-time profile setup (`hidractl init-profiles`, needed once because the mouse ships with blank user memory), then DPI stage edit, read back and restored |
 
 `hidractl info` and `hidractl report` work on any Logitech device that speaks
 HID++ 2.0. Onboard-profile decoding covers profile formats 1–5 and has only
