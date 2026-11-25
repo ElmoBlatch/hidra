@@ -13,6 +13,7 @@ mod error;
 pub mod features;
 pub mod record;
 pub mod replay;
+pub mod sim;
 mod report;
 mod transport;
 
