@@ -285,3 +285,98 @@ async fn replayed_captures_offer_no_editing(cx: &mut TestAppContext) {
     cx.run_until_parked();
     cx.update(|cx| assert!(view.read(cx).editor().is_none()));
 }
+
+/// The button map against a simulated mouse: select a button, choose an
+/// action, save, and see the device re-read with the new assignment.
+#[gpui_kit::test]
+async fn button_map_assigns_an_action_and_saves_it(cx: &mut TestAppContext) {
+    use lg_profiles::{ButtonBinding, ProfileEdit};
+    use lg_snapshot::DeviceSource;
+
+    let source = Source::demo().unwrap();
+    let Source::Fixed(entries) = &source else { unreachable!() };
+    let DeviceSource::Sim(memory) = entries[0].source.clone() else { unreachable!() };
+    let backups = std::env::temp_dir().join(format!("hidra-map-test-{}", std::process::id()));
+    let (handle, view) = open(cx, source);
+    cx.update(|cx| view.update(cx, |v, _| v.set_backup_dir(backups.clone())));
+    settle(cx, handle, &view).await;
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
+
+    let map = cx.update(|cx| view.read(cx).button_map().cloned()).expect("an editable G502 profile has a button map");
+    let f13 = ButtonBinding::parse("key:F13").unwrap();
+    cx.update(|cx| {
+        let m = map.read(cx);
+        assert!(!m.is_readonly());
+        assert_eq!(m.selected(), None);
+        assert!(m.pending_edits().is_empty());
+    });
+
+    // Selecting a button and choosing an action is an unsaved change; nothing
+    // is written yet.
+    cx.update(|cx| {
+        map.update(cx, |m, cx| {
+            m.select(6, cx);
+            m.assign(6, f13, cx);
+        })
+    });
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
+    cx.update(|cx| {
+        let m = map.read(cx);
+        assert_eq!(m.selected(), Some(6));
+        assert!(m.is_changed(6) && !m.is_changed(5));
+        assert_eq!(m.pending_edits(), vec![ProfileEdit::SetButton { index: 6, binding: f13 }]);
+    });
+    assert_eq!(memory.lock().unwrap().begin_writes, 0);
+
+    // Discard drops it; assigning again and saving writes one sector.
+    cx.update(|cx| map.update(cx, |m, cx| m.discard(cx)));
+    cx.update(|cx| assert!(map.read(cx).pending_edits().is_empty()));
+    cx.update(|cx| {
+        map.update(cx, |m, cx| {
+            m.assign(6, f13, cx);
+            m.save(cx);
+        })
+    });
+    settle(cx, handle, &view).await;
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
+
+    cx.update(|cx| {
+        let v = view.read(cx);
+        let id = v.selected_device().unwrap().to_string();
+        let Some(DeviceRead::Ready(s)) = v.device_read(&id) else { panic!("device is shown as read") };
+        let set = s.onboard.as_ref().unwrap().as_ref().unwrap().profiles.as_ref().unwrap();
+        assert_eq!(set.profiles[0].content.as_ref().unwrap().buttons[6], "key F13");
+        // The re-read device gets a fresh map with nothing pending.
+        let fresh = v.button_map().expect("the map follows the new read");
+        assert_ne!(fresh.entity_id(), map.entity_id());
+        assert!(fresh.read(cx).pending_edits().is_empty());
+        assert_eq!(fresh.read(cx).binding(6), Some(f13));
+    });
+    assert_eq!(memory.lock().unwrap().begin_writes, 1, "one sector write");
+    let _ = std::fs::remove_dir_all(&backups);
+}
+
+/// A replayed capture shows the map but accepts no changes.
+#[gpui_kit::test]
+async fn button_map_is_readonly_for_replayed_captures(cx: &mut TestAppContext) {
+    use lg_profiles::ButtonBinding;
+
+    let source = Source::Replay { log: capture("g502-proteus-spectrum-c332.log"), segment: None };
+    let (handle, view) = open(cx, source);
+    settle(cx, handle, &view).await;
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
+
+    let map = cx.update(|cx| view.read(cx).button_map().cloned()).expect("the capture's profile has a button map");
+    cx.update(|cx| {
+        map.update(cx, |m, cx| {
+            assert!(m.is_readonly());
+            let before = m.binding(5);
+            m.select(5, cx);
+            m.assign(5, ButtonBinding::parse("key:F13").unwrap(), cx);
+            m.save(cx);
+            assert_eq!(m.binding(5), before);
+            assert!(m.pending_edits().is_empty() && !m.is_saving());
+        })
+    });
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
+}

@@ -63,7 +63,9 @@ for every onboard profile its DPI stages, button assignments (remapped buttons
 are marked) and lighting. Firmware and storage details are under
 **Device info…**.
 
-**Edit…** opens a profile's polling rate, DPI stages and button assignments.
+G502 profiles show a drawing of the mouse with a marker per button. Select a
+button to pick what it does from a list, then **Save to mouse**. **Edit…**
+opens a profile's polling rate, DPI stages and button assignments.
 **Save to mouse** writes through the guarded path above and shows the mouse as
 read back afterwards. It is offered only for write-verified mice. Backups go
 to `~/.local/share/hidra/backups`.

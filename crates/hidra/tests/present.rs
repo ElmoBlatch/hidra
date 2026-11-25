@@ -134,3 +134,52 @@ fn form_edits_only_reports_what_changed_and_validates() {
     assert_eq!(change_count_label(1), "1 change");
     assert_eq!(change_count_label(3), "3 changes");
 }
+
+#[test]
+fn mouse_drawing_parses_and_covers_every_button() {
+    use hidra::mouse_art::{ANCHORS, CARD_H, CARD_W, SHAPES, Segment, VIEW_H, VIEW_W, parse_path};
+
+    for shape in SHAPES {
+        let segments = parse_path(shape.d).unwrap_or_else(|| panic!("unparseable shape: {}", shape.d));
+        assert!(matches!(segments.first(), Some(Segment::Move(..))), "a path starts with a move");
+        for segment in &segments {
+            let (x, y) = match *segment {
+                Segment::Move(x, y) | Segment::Line(x, y) | Segment::Cubic(_, _, _, _, x, y) => (x, y),
+                Segment::Close => continue,
+            };
+            assert!((0.0..=VIEW_W).contains(&x) && (0.0..=VIEW_H).contains(&y), "({x}, {y}) is inside the view");
+        }
+    }
+    // G1 to G9 each have a key outline; the two wheel tilts share the wheel.
+    for button in 0..9 {
+        assert!(SHAPES.iter().any(|s| s.button == Some(button)), "button {button} has a key shape");
+    }
+    // Cards stay inside the view and don't overlap on either side.
+    for (ix, a) in ANCHORS.iter().enumerate() {
+        assert!(a.card_x() >= 0.0 && a.card_x() + CARD_W <= VIEW_W);
+        assert!(a.card_y - CARD_H / 2.0 >= 0.0 && a.card_y + CARD_H / 2.0 <= VIEW_H);
+        for b in &ANCHORS[ix + 1..] {
+            assert!(a.side != b.side || (a.card_y - b.card_y).abs() >= CARD_H, "cards don't overlap");
+        }
+    }
+    assert_eq!(parse_path("M 1 2 Q 3 4 5 6"), None, "unsupported commands are rejected");
+    assert_eq!(parse_path("M 1"), None, "a short command is rejected");
+}
+
+#[test]
+fn action_groups_offer_each_action_once_and_keep_an_unlisted_binding() {
+    use hidra::edit_form::action_groups;
+    use lg_profiles::ButtonBinding;
+
+    let standard = action_groups(ButtonBinding::parse("left").unwrap());
+    assert_eq!(standard.iter().map(|g| g.title).collect::<Vec<_>>(), ["Mouse", "DPI", "Profile", "Keys", "Other"]);
+    let all: Vec<_> = standard.iter().flat_map(|g| &g.choices).collect();
+    for (ix, a) in all.iter().enumerate() {
+        assert!(all[ix + 1..].iter().all(|b| a.binding != b.binding), "{} is listed once", a.label);
+    }
+
+    let unlisted = ButtonBinding::parse("key:ctrl+c").unwrap();
+    let groups = action_groups(unlisted);
+    assert_eq!(groups[0].title, "Current");
+    assert_eq!(groups[0].choices[0].binding, unlisted);
+}

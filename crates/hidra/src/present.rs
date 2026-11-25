@@ -161,9 +161,11 @@ pub struct ButtonRow {
 }
 
 /// Physical button names for the G502 family (Proteus Spectrum, LIGHTSPEED),
-/// in onboard-profile order. G1–G9 follow Logitech's own labels. G7–G9 sit on
-/// top of the mouse; their exact positions and the wheel tilts' G numbers are
-/// not confirmed, so those names stay generic.
+/// in onboard-profile order. G1–G9 follow Logitech's own labels. G7 and G8
+/// sit along the left click's outer edge and G9 behind the wheel. Which of
+/// G7 and G8 is the front one is taken from their factory roles (DPI down and
+/// DPI up) and has not been checked by pressing them. The wheel tilts' G
+/// numbers are not confirmed, so those stay unnumbered.
 /// (key label, physical name, factory actions as decoded labels). The
 /// factory actions come from the mice's own ROM profiles; G9 is profile cycle
 /// on the Proteus Spectrum and battery level on the LIGHTSPEED.
@@ -174,9 +176,9 @@ const G502_BUTTONS: [(Option<&str>, &str, &[&str]); 11] = [
     (Some("G4"), "Back", &["mouse back"]),
     (Some("G5"), "Forward", &["mouse forward"]),
     (Some("G6"), "Sniper", &["DPI shift (sniper)"]),
-    (Some("G7"), "Top button", &["DPI down"]),
-    (Some("G8"), "Top button", &["DPI up"]),
-    (Some("G9"), "Top button", &["cycle profile", "show battery level"]),
+    (Some("G7"), "Top button, rear", &["DPI down"]),
+    (Some("G8"), "Top button, front", &["DPI up"]),
+    (Some("G9"), "Behind the wheel", &["cycle profile", "show battery level"]),
     (None, "Wheel tilt right", &["wheel tilt right"]),
     (None, "Wheel tilt left", &["wheel tilt left"]),
 ];

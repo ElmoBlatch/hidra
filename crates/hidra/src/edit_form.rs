@@ -58,6 +58,47 @@ pub fn action_choices(current: ButtonBinding) -> (Vec<ActionChoice>, usize) {
     }
 }
 
+/// A titled run of actions in the button map's action list.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ActionGroup {
+    pub title: &'static str,
+    pub choices: Vec<ActionChoice>,
+}
+
+/// The assignable actions grouped for browsing. When `current` is something
+/// the standard list doesn't offer (another key, a macro), it leads the list
+/// in its own group so it can be kept.
+pub fn action_groups(current: ButtonBinding) -> Vec<ActionGroup> {
+    let group = |title, texts: Vec<String>| ActionGroup {
+        title,
+        choices: texts
+            .iter()
+            .map(|t| {
+                let binding = ButtonBinding::parse(t).expect("standard action parses");
+                ActionChoice { label: present::action_label(&binding.label()), binding }
+            })
+            .collect(),
+    };
+    let texts = |list: &[&str]| list.iter().map(|t| t.to_string()).collect::<Vec<_>>();
+    let mut groups = vec![
+        group("Mouse", texts(&["left", "right", "middle", "back", "forward", "tilt-left", "tilt-right"])),
+        group("DPI", texts(&["dpi-up", "dpi-down", "dpi-cycle", "dpi-shift", "dpi-default"])),
+        group("Profile", texts(&["profile-cycle"])),
+        group("Keys", (13..=24).map(|n| format!("key:F{n}")).collect()),
+        group("Other", texts(&["disabled"])),
+    ];
+    if !groups.iter().any(|g| g.choices.iter().any(|c| c.binding == current)) {
+        groups.insert(
+            0,
+            ActionGroup {
+                title: "Current",
+                choices: vec![ActionChoice { label: present::action_label(&current.label()), binding: current }],
+            },
+        );
+    }
+    groups
+}
+
 /// What the form currently holds.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FormValues {

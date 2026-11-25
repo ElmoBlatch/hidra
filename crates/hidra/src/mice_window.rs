@@ -33,6 +33,7 @@ use gpui_kit::{
 use lg_profiles::ProfileEdit;
 use lg_snapshot::{DeviceEntry, DeviceSnapshot, EditError, ReadError};
 
+use crate::button_map::{ButtonMap, ButtonMapEvent};
 use crate::present::{self, Fact, Stat};
 use crate::profile_detail::ProfileDetail;
 use crate::profile_editor::{ProfileEditor, ProfileEditorEvent};
@@ -90,8 +91,16 @@ pub struct MiceWindow {
     /// The open profile editor and the device it edits.
     editor: Option<(String, Entity<ProfileEditor>)>,
     _editor_subscription: Option<Subscription>,
+    /// The button map of the shown profile, and what it was built from.
+    button_map: Option<(ButtonMapKey, Entity<ButtonMap>)>,
+    _button_map_subscription: Option<Subscription>,
     backup_dir: PathBuf,
 }
+
+/// What a button map was built from: the device, the profile's address and
+/// the identity of the snapshot. A new read or another profile gives a new
+/// key, and with it a fresh map.
+type ButtonMapKey = (String, u16, usize);
 
 impl MiceWindow {
     pub fn new(source: Source, window: &mut Window, cx: &mut Context<Self>) -> Self {
@@ -108,6 +117,8 @@ impl MiceWindow {
             chosen_profiles: HashMap::new(),
             editor: None,
             _editor_subscription: None,
+            button_map: None,
+            _button_map_subscription: None,
             backup_dir: state::default_backup_dir(),
         };
         this.start_discovery(cx);
@@ -157,6 +168,86 @@ impl MiceWindow {
     /// Where pre-write backups are saved.
     pub fn set_backup_dir(&mut self, dir: PathBuf) {
         self.backup_dir = dir;
+    }
+
+    /// The button map of the shown profile, when it has one.
+    pub fn button_map(&self) -> Option<&Entity<ButtonMap>> {
+        self.button_map.as_ref().map(|(_, map)| map)
+    }
+
+    /// What the button map should show: its key, the profile content and why
+    /// the profile can't be edited, if it can't. `None` when the shown profile
+    /// has no G502 button layout to draw.
+    fn button_map_target(&self) -> Option<(ButtonMapKey, lg_snapshot::ProfileContent, Option<SharedString>)> {
+        let id = self.selected.as_ref()?;
+        let entry = self.devices.iter().find(|d| &d.id == id)?;
+        let snapshot = self.reads.get(id)?.snapshot()?;
+        let set = self.profile_set(id)?;
+        let shown = state::shown_profile(set, self.chosen_profiles.get(id).copied())?;
+        let profile = set.profiles.iter().find(|p| p.address == shown)?;
+        let content = profile.content.as_ref().ok()?;
+        if !present::is_g502_layout(entry, content) {
+            return None;
+        }
+        let readonly = if !entry.write_verified() {
+            Some("Editing isn't verified for this mouse yet.".into())
+        } else if profile.factory {
+            Some("Factory profiles can't be edited.".into())
+        } else {
+            None
+        };
+        let key = (id.clone(), shown, Arc::as_ptr(snapshot) as usize);
+        Some((key, content.clone(), readonly))
+    }
+
+    /// Keep the button map in step with the shown profile. Unsaved changes
+    /// belong to one profile as it was read, so they go when either changes.
+    fn sync_button_map(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        let target = self.button_map_target();
+        if target.as_ref().map(|(key, ..)| key) == self.button_map.as_ref().map(|(key, _)| key) {
+            return;
+        }
+        match target {
+            Some((key, content, readonly)) => {
+                let map = cx.new(|_| ButtonMap::new(key.1, &content, readonly));
+                self._button_map_subscription = Some(cx.subscribe_in(&map, window, Self::on_button_map_event));
+                self.button_map = Some((key, map));
+            }
+            None => {
+                self.button_map = None;
+                self._button_map_subscription = None;
+            }
+        }
+    }
+
+    fn on_button_map_event(
+        &mut self,
+        map: &Entity<ButtonMap>,
+        event: &ButtonMapEvent,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let ButtonMapEvent::Save(edits) = event;
+        let Some((key, _)) = &self.button_map else { return };
+        let (id, address) = (key.0.clone(), key.1);
+        let Some(entry) = self.devices.iter().find(|d| d.id == id).cloned() else { return };
+        if !self.in_flight.insert(id.clone()) {
+            map.update(cx, |map, cx| map.save_failed(cx));
+            window.push_notification(
+                Notification::warning("The mouse is being read. Try again in a moment.").title("Not saved"),
+                cx,
+            );
+            return;
+        }
+        let (edits, backup_dir) = (edits.clone(), self.backup_dir.clone());
+        cx.notify();
+        cx.spawn_in(window, async move |this, cx| {
+            let result = cx
+                .background_spawn(async move { lg_snapshot::edit_entry(&entry, address, &edits, &backup_dir) })
+                .await;
+            this.update_in(cx, |this, window, cx| this.apply_save(id, result, window, cx)).ok();
+        })
+        .detach();
     }
 
     /// True when the shown profile can be edited: a write-verified device, a
@@ -256,6 +347,9 @@ impl MiceWindow {
                 window.push_notification(Notification::success("Saved to the mouse"), cx);
             }
             Err(e) => {
+                if let Some((_, map)) = &self.button_map {
+                    map.update(cx, |map, cx| map.save_failed(cx));
+                }
                 if let Some((_, editor)) = &self.editor {
                     editor.update(cx, |editor, cx| editor.save_failed(e.to_string(), cx));
                 } else {
@@ -674,7 +768,8 @@ impl MiceWindow {
             .when_some(set.profiles.get(shown_ix).cloned(), |this, p| {
                 let g502_layout = p.content.as_ref().is_ok_and(|c| present::is_g502_layout(entry, c));
                 let live_dpi = s.sensor_dpi.as_ref().and_then(|r| r.as_ref().ok()).map(|d| d.current);
-                this.child(ProfileDetail::new(p).g502_layout(g502_layout).live_dpi(live_dpi))
+                let map = self.button_map.as_ref().filter(|(key, _)| key.1 == p.address).map(|(_, map)| map.clone());
+                this.child(ProfileDetail::new(p).g502_layout(g502_layout).live_dpi(live_dpi).button_map(map))
             })
             .into_any_element()
     }
@@ -750,7 +845,8 @@ impl Focusable for MiceWindow {
 }
 
 impl Render for MiceWindow {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.sync_button_map(window, cx);
         h_flex()
             .id("mice-window")
             .key_context(KEY_CONTEXT)

@@ -13,10 +13,11 @@ use gpui_kit::component::{
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    App, IntoElement, ParentElement as _, RenderOnce, SharedString, Styled as _, Window, div, relative, rems, rgb,
+    App, Entity, IntoElement, ParentElement as _, RenderOnce, SharedString, Styled as _, Window, div, relative, rems, rgb,
 };
 use lg_snapshot::{Integrity, LedSnapshot, ProfileContent, ProfileSnapshot};
 
+use crate::button_map::ButtonMap;
 use crate::present::{self, ButtonRow, StageRow};
 
 /// Readonly presentation of one decoded profile.
@@ -26,11 +27,19 @@ pub struct ProfileDetail {
     g502_layout: bool,
     /// The sensor's live DPI, when this profile is the active one.
     live_dpi: Option<u16>,
+    /// The interactive button map, shown in place of the button list.
+    button_map: Option<Entity<ButtonMap>>,
 }
 
 impl ProfileDetail {
     pub fn new(profile: ProfileSnapshot) -> Self {
-        Self { profile, g502_layout: false, live_dpi: None }
+        Self { profile, g502_layout: false, live_dpi: None, button_map: None }
+    }
+
+    /// Show `button_map` instead of the readonly button list.
+    pub fn button_map(mut self, button_map: Option<Entity<ButtonMap>>) -> Self {
+        self.button_map = button_map;
+        self
     }
 
     /// Name buttons with the G502 family's key labels.
@@ -87,26 +96,44 @@ impl RenderOnce for ProfileDetail {
                     .title("Checksum mismatch"),
                 )
             })
-            .child(
-                h_flex()
-                    .flex_wrap()
-                    .items_start()
-                    .gap_4()
-                    .child(
-                        v_flex()
-                            .flex_1()
-                            .min_w(rems(20.))
-                            .gap_4()
-                            .child(panel("DPI stages", dpi_stages(content, live_dpi, cx)))
-                            .child(panel("Lighting", lighting(&content.leds, cx))),
-                    )
-                    .child(
-                        v_flex()
-                            .flex_1()
-                            .min_w(rems(20.))
-                            .child(panel("Buttons", buttons(content, self.g502_layout, cx))),
-                    ),
-            )
+            .map(|this| match self.button_map {
+                // The map is wide, so it takes a row of its own.
+                Some(map) => this.child(map).child(
+                    h_flex()
+                        .flex_wrap()
+                        .items_start()
+                        .gap_4()
+                        .child(
+                            v_flex()
+                                .flex_1()
+                                .min_w(rems(20.))
+                                .child(panel("DPI stages", dpi_stages(content, live_dpi, cx))),
+                        )
+                        .child(
+                            v_flex().flex_1().min_w(rems(20.)).child(panel("Lighting", lighting(&content.leds, cx))),
+                        ),
+                ),
+                None => this.child(
+                    h_flex()
+                        .flex_wrap()
+                        .items_start()
+                        .gap_4()
+                        .child(
+                            v_flex()
+                                .flex_1()
+                                .min_w(rems(20.))
+                                .gap_4()
+                                .child(panel("DPI stages", dpi_stages(content, live_dpi, cx)))
+                                .child(panel("Lighting", lighting(&content.leds, cx))),
+                        )
+                        .child(
+                            v_flex()
+                                .flex_1()
+                                .min_w(rems(20.))
+                                .child(panel("Buttons", buttons(content, self.g502_layout, cx))),
+                        ),
+                ),
+            })
             .into_any_element()
     }
 }

@@ -49,7 +49,7 @@ fn main() {
         hidra::init(cx);
 
         let options = WindowOptions {
-            window_bounds: Some(WindowBounds::Windowed(Bounds::centered(None, size(px(1180.), px(820.)), cx))),
+            window_bounds: Some(WindowBounds::Windowed(Bounds::centered(None, size(px(1440.), px(900.)), cx))),
             window_min_size: Some(size(px(760.), px(520.))),
             titlebar: Some(TitlebarOptions { title: Some(SharedString::from("hidra")), ..Default::default() }),
             window_decorations: Some(WindowDecorations::Server),
