@@ -1,24 +1,34 @@
-//! Find Logitech HID++ hidraw nodes through sysfs, without opening them.
+//! Find Logitech HID++ devices without talking to them: through sysfs on
+//! Linux, through the HID device list on Windows.
 
-use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use crate::LOGITECH_VID;
+#[cfg(target_os = "linux")]
+#[path = "discovery_linux.rs"]
+mod linux;
+#[cfg(windows)]
+#[path = "discovery_windows.rs"]
+pub(crate) mod windows;
 
-/// What a hidraw node is, as far as discovery can tell.
+#[cfg(target_os = "linux")]
+pub(crate) use linux::hidpp_report_support_for_dev;
+
+/// What a device node is, as far as discovery can tell.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NodeKind {
     /// A device that answers HID++ 2.0 at device index 0xff: a wired mouse, or
-    /// the per-device hidraw node that `hid-logitech-dj` creates for a mouse
-    /// paired to a receiver.
+    /// on Linux the per-device hidraw node that `hid-logitech-dj` creates for
+    /// a mouse paired to a receiver.
     Device,
     /// A receiver's own HID++ interface (Unifying / LIGHTSPEED / Bolt).
     Receiver,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct HidrawNode {
+pub struct HidNode {
+    /// `/dev/hidrawN` on Linux; on Windows the path of one of the device's
+    /// HID++ collections.
     pub dev_path: PathBuf,
     pub vendor: u16,
     pub product: u16,
@@ -29,9 +39,12 @@ pub struct HidrawNode {
     pub long_reports: bool,
     /// Product ID of the receiver this node sits under, for paired devices.
     pub via_receiver: Option<u16>,
+    /// The HID++ device index that reaches the device through `dev_path`:
+    /// 0xff for the node's own device, or a receiver slot.
+    pub device_index: u8,
 }
 
-impl HidrawNode {
+impl HidNode {
     pub fn model_name(&self) -> &'static str {
         model_name(self.product)
     }
@@ -56,75 +69,90 @@ pub fn model_name(pid: u16) -> &'static str {
     }
 }
 
-/// Enumerate every Logitech hidraw node that declares HID++ short or long
-/// reports in its report descriptor.
-pub fn enumerate() -> io::Result<Vec<HidrawNode>> {
+/// Enumerate every Logitech HID device that carries HID++ short or long
+/// reports, without talking to it.
+pub fn enumerate() -> io::Result<Vec<HidNode>> {
+    #[cfg(target_os = "linux")]
+    return linux::enumerate();
+    #[cfg(windows)]
+    return windows::enumerate();
+    #[cfg(not(any(target_os = "linux", windows)))]
+    Ok(Vec::new())
+}
+
+/// True when mice behind a receiver have to be reached through the
+/// receiver's slots: always on Windows, and on Linux when
+/// `HIDRA_RECEIVER_SLOTS=1` asks for it (for diagnosis; the kernel's
+/// per-mouse nodes are used otherwise).
+pub fn uses_receiver_slots() -> bool {
+    cfg!(windows) || std::env::var_os("HIDRA_RECEIVER_SLOTS").is_some_and(|v| v == "1")
+}
+
+/// Every device that can be asked for its settings: the device nodes from
+/// [`enumerate`], and where [`uses_receiver_slots`] says so, each device
+/// paired to a receiver. Finding paired devices reads the receiver's pairing
+/// registers; a receiver that can't be opened is skipped.
+pub fn devices() -> io::Result<Vec<HidNode>> {
     let mut out = Vec::new();
-    let dir = match fs::read_dir("/sys/class/hidraw") {
-        Ok(d) => d,
-        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(out),
-        Err(e) => return Err(e),
-    };
-    for entry in dir.flatten() {
-        let name = entry.file_name().to_string_lossy().to_string();
-        let sys = entry.path();
-        let Ok(uevent) = fs::read_to_string(sys.join("device/uevent")) else { continue };
-        let Some((bus, vendor, product)) = parse_hid_id(&uevent) else { continue };
-        if vendor != LOGITECH_VID {
-            continue;
+    for node in enumerate()? {
+        match node.kind {
+            NodeKind::Device => out.push(node),
+            NodeKind::Receiver if uses_receiver_slots() => out.extend(paired_nodes(&node)),
+            NodeKind::Receiver => {}
         }
-        let Ok(desc) = fs::read(sys.join("device/report_descriptor")) else { continue };
-        let ids = report_ids(&desc);
-        let (short_reports, long_reports) = (ids.contains(&0x10), ids.contains(&0x11));
-        if !short_reports && !long_reports {
-            continue;
-        }
-        let hid_name = uevent
-            .lines()
-            .find_map(|l| l.strip_prefix("HID_NAME="))
-            .unwrap_or("")
-            .to_string();
-        let via_receiver = receiver_parent(&sys);
-        out.push(HidrawNode {
-            dev_path: PathBuf::from("/dev").join(&name),
-            vendor,
-            product,
-            bus,
-            name: hid_name,
-            kind: if is_receiver_pid(product) { NodeKind::Receiver } else { NodeKind::Device },
-            short_reports,
-            long_reports,
-            via_receiver,
-        });
     }
-    out.sort_by(|a, b| a.dev_path.cmp(&b.dev_path));
     Ok(out)
 }
 
-/// HID++ short/long support for an opened `/dev/hidrawN` path.
-pub(crate) fn hidpp_report_support_for_dev(dev: &Path) -> Option<(bool, bool)> {
-    let name = dev.file_name()?;
-    let desc = fs::read(Path::new("/sys/class/hidraw").join(name).join("device/report_descriptor")).ok()?;
-    let ids = report_ids(&desc);
-    Some((ids.contains(&0x10), ids.contains(&0x11)))
+/// A node per device paired to `receiver`.
+fn paired_nodes(receiver: &HidNode) -> Vec<HidNode> {
+    let Ok(mut transport) = crate::HidTransport::open(&receiver.dev_path) else { return Vec::new() };
+    let paired = crate::receiver::paired_devices(&mut transport, receiver.product).unwrap_or_default();
+    paired
+        .into_iter()
+        .map(|p| HidNode {
+            product: p.wpid,
+            name: format!("{} (slot {})", model_name(p.wpid), p.slot),
+            kind: NodeKind::Device,
+            via_receiver: Some(receiver.product),
+            device_index: p.slot,
+            ..receiver.clone()
+        })
+        .collect()
 }
 
-fn receiver_parent(sys: &Path) -> Option<u16> {
-    // A DJ child's HID device directory sits inside the receiver's HID device
-    // directory: .../0003:046D:C539.000A/0003:046D:407F.000B/hidraw/hidraw15
-    let real = fs::canonicalize(sys.join("device")).ok()?;
-    let parent = real.parent()?.file_name()?.to_string_lossy().to_string();
-    let mut parts = parent.split(['.', ':']);
-    let (_bus, vid, pid) = (parts.next()?, parts.next()?, parts.next()?);
-    let (vid, pid) = (u16::from_str_radix(vid, 16).ok()?, u16::from_str_radix(pid, 16).ok()?);
-    (vid == LOGITECH_VID && is_receiver_pid(pid)).then_some(pid)
+/// Which HID++ reports a Windows top-level collection carries, from its usage
+/// page and usage: (short, long).
+///
+/// Logitech declares HID++ either on vendor page 0xff00 with usage 1 for the
+/// short report and usage 2 for the long one, or on page 0xff43 with the
+/// report kinds as bits of the usage's low byte (1 short, 2 long).
+#[cfg(any(windows, test))]
+pub(crate) fn hidpp_usage(usage_page: u16, usage: u16) -> (bool, bool) {
+    match usage_page {
+        0xff00 => (usage == 1, usage == 2),
+        0xff43 => (usage & 0x01 != 0, usage & 0x02 != 0),
+        _ => (false, false),
+    }
 }
 
-/// Parse `HID_ID=0003:0000046D:0000C332`.
-fn parse_hid_id(uevent: &str) -> Option<(u16, u16, u16)> {
-    let id = uevent.lines().find_map(|l| l.strip_prefix("HID_ID="))?;
-    let mut it = id.split(':').map(|p| u32::from_str_radix(p, 16).ok());
-    Some((it.next()?? as u16, it.next()?? as u16, it.next()?? as u16))
+/// What the collections of one Windows HID interface have in common, taken
+/// from a device path such as
+/// `\\?\hid#vid_046d&pid_c332&mi_01&col02#8&1a2b3c4d&0&0001#{4d1e55b2-…}`:
+/// the hardware ID without its `&colNN` part, and the instance ID without its
+/// last, per-collection segment.
+#[cfg(any(windows, test))]
+pub(crate) fn windows_group_key(path: &str) -> String {
+    let path = path.to_ascii_lowercase();
+    let mut parts = path.split('#');
+    match (parts.next(), parts.next(), parts.next()) {
+        (Some(_), Some(hardware), Some(instance)) if hardware.contains("&col") => {
+            let hardware = hardware.split("&col").next().unwrap_or(hardware);
+            let instance = instance.rsplit_once('&').map_or(instance, |(shared, _)| shared);
+            format!("{hardware}#{instance}")
+        }
+        _ => path,
+    }
 }
 
 /// Collect Report ID items (global tag 8) from a HID report descriptor.
@@ -157,8 +185,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn hid_id() {
-        assert_eq!(parse_hid_id("DRIVER=x\nHID_ID=0003:0000046D:0000C332\n"), Some((3, 0x046d, 0xc332)));
+    fn windows_collections_of_one_interface_share_a_key() {
+        let short = r"\\?\HID#VID_046D&PID_C332&MI_01&Col01#8&1a2b3c4d&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+        let long = r"\\?\hid#vid_046d&pid_c332&mi_01&col02#8&1a2b3c4d&0&0001#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+        let other_mouse = r"\\?\hid#vid_046d&pid_c332&mi_01&col02#8&99999999&0&0001#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+        let other_interface = r"\\?\hid#vid_046d&pid_c332&mi_00#8&2b3c4d5e&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}";
+        assert_eq!(windows_group_key(short), windows_group_key(long));
+        assert_eq!(windows_group_key(short), "vid_046d&pid_c332&mi_01#8&1a2b3c4d&0");
+        assert_ne!(windows_group_key(long), windows_group_key(other_mouse));
+        assert_ne!(windows_group_key(long), windows_group_key(other_interface));
+    }
+
+    #[test]
+    fn hidpp_usages() {
+        assert_eq!(hidpp_usage(0xff00, 1), (true, false));
+        assert_eq!(hidpp_usage(0xff00, 2), (false, true));
+        assert_eq!(hidpp_usage(0xff43, 0x0202), (false, true));
+        assert_eq!(hidpp_usage(0x0001, 2), (false, false), "a generic-desktop mouse collection");
     }
 
     #[test]

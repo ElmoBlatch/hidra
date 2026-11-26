@@ -12,12 +12,12 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
-use lg_hidpp::discovery::{self, NodeKind};
+use lg_hidpp::discovery;
 use lg_hidpp::features::{
     adjustable_dpi, battery_voltage, device_info, device_name, onboard_profiles, page_name, report_rate,
 };
 use lg_hidpp::record::{Recorder, RecordingTransport};
-use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidrawTransport, Transport};
+use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidTransport, Transport};
 use lg_profiles::{Descriptor, Directory, Sector};
 use serde::Serialize;
 
@@ -28,6 +28,7 @@ struct Report {
     format: &'static str,
     tool: String,
     created_unix: u64,
+    os: &'static str,
     kernel: Option<String>,
     privacy: Privacy,
     nodes: Vec<NodeRecord>,
@@ -94,11 +95,15 @@ fn hex(bytes: &[u8]) -> String {
 /// Collect a report for every Logitech HID++ device and write it under `out`.
 pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
     let nodes = discovery::enumerate()?;
+    let targets = discovery::devices()?;
     let recorder = Recorder::new_shared();
     let mut devices = Vec::new();
 
-    for n in nodes.iter().filter(|n| n.kind == NodeKind::Device) {
-        let path = n.dev_path.display().to_string();
+    for n in &targets {
+        let path = match n.device_index {
+            DEVICE_INDEX_DIRECT => n.dev_path.display().to_string(),
+            slot => format!("{}#{slot}", n.dev_path.display()),
+        };
         eprintln!("reading {} ({path}) ...", n.model_name());
         recorder.borrow_mut().begin_device(&n.name, &path);
         let mut rec = DeviceRecord {
@@ -107,11 +112,11 @@ pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
             hid_name: n.name.clone(),
             ..Default::default()
         };
-        match HidrawTransport::open(&n.dev_path) {
+        match HidTransport::open(&n.dev_path) {
             Err(e) => rec.error = Some(format!("open: {e}")),
             Ok(t) => {
                 let transport = RecordingTransport::new(t, recorder.clone());
-                match Device::open_with_timeout(transport, DEVICE_INDEX_DIRECT, Duration::from_millis(1500)) {
+                match Device::open_with_timeout(transport, n.device_index, Duration::from_millis(1500)) {
                     Err(e) => rec.error = Some(format!("HID++ 2.0 open: {e}")),
                     Ok(mut dev) => {
                         if let Some(f) = dev.feature(device_info::PAGE) {
@@ -134,6 +139,7 @@ pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
         format: FORMAT,
         tool: format!("hidractl {}", env!("CARGO_PKG_VERSION")),
         created_unix: now,
+        os: std::env::consts::OS,
         kernel: std::fs::read_to_string("/proc/sys/kernel/osrelease").ok().map(|s| s.trim().to_string()),
         privacy: Privacy {
             unit_id_redacted: true,

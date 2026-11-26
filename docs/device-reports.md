@@ -9,7 +9,7 @@ suite. Collecting it **only reads** from the device; nothing on it is changed.
 
 Either download `hidractl-x86_64-linux` from the latest GitHub release
 (`chmod +x` it and use it in place of `~/.cargo/bin/hidractl` below), or
-build it. Building needs Rust (<https://rustup.rs>) and Linux.
+build it. Building needs Rust (<https://rustup.rs>) and Linux or Windows.
 
 ```sh
 git clone https://github.com/ElmoBlatch/hidra.git
@@ -33,6 +33,18 @@ sudo ~/.cargo/bin/hidractl report --out reports
 
 (If you plan to use the tool regularly, install the udev rule instead; see the
 README. Then you can drop `sudo`.)
+
+On Windows, close G HUB and Logitech Gaming Software, then run it from a
+terminal in the folder that holds the tool. No administrator rights are
+needed:
+
+```
+hidractl report --out reports
+```
+
+Windows support is new. If the tool finds nothing or stops with an error,
+please open the issue anyway and paste what `hidractl list` and the failed
+command printed.
 
 It prints one line per device it reads and the path of the report, e.g.
 `reports/hidra-report-c332-1795517600.json`.

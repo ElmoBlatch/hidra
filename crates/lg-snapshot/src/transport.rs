@@ -3,11 +3,11 @@ use std::time::Duration;
 
 use lg_hidpp::replay::ReplayTransport;
 use lg_hidpp::sim::SimMouse;
-use lg_hidpp::{HidrawTransport, Transport};
+use lg_hidpp::{HidTransport, Transport};
 
 /// Either a live hidraw node or a replayed capture, behind one transport type.
 pub enum AnyTransport {
-    Hidraw(HidrawTransport),
+    Hidraw(HidTransport),
     Replay(ReplayTransport),
     Sim(SimMouse),
 }

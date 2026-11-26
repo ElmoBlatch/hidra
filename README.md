@@ -37,7 +37,8 @@ only reads from the device.
 
 ## Install
 
-Needs Rust and Linux.
+Needs Rust, and Linux or Windows. Windows support is new and has not been run
+on real hardware yet: see [Windows](#windows).
 
 ```sh
 cargo install --path crates/hidractl   # command-line tool
@@ -50,6 +51,29 @@ sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=hidraw
 
 The udev rule covers the two tested mice. For other devices, run `hidractl`
 with `sudo`, or add the product ID to the rule.
+
+## Windows
+
+```sh
+cargo install --path crates/hidractl
+cargo install --path crates/hidra
+```
+
+No driver or administrator rights are needed. Close G HUB and Logitech Gaming
+Software first: they talk to the same mouse and can undo or overwrite what
+hidra does.
+
+What to expect today:
+
+- Reading (`hidractl list`, `info`, `profiles`, `backup`, `report`, and the
+  viewer) is built and tested in CI but has not been run against a real mouse
+  on Windows. If you try it, please send a
+  [device report](docs/device-reports.md), working or not.
+- A mouse on a wireless receiver is found by asking the receiver which
+  devices are paired to it. That query was checked against a real LIGHTSPEED
+  receiver on Linux.
+- Writing is off. To try it on one of the two tested mice, take a
+  `hidractl backup`, then set `HIDRA_WINDOWS_WRITES=1`.
 
 ## Desktop viewer
 
@@ -101,7 +125,7 @@ hidractl --replay captures/ratbagd/g502-proteus-spectrum-c332.log profiles
 
 | Path | What |
 | --- | --- |
-| `crates/lg-hidpp` | HID++ framing, hidraw transport, sysfs discovery, typed feature getters, the guarded sector write, traffic recorder, replay transport and a simulated mouse |
+| `crates/lg-hidpp` | HID++ framing, the Linux (hidraw, sysfs) and Windows (HID collections) transports and discovery, receiver pairing queries, typed feature getters, the guarded sector write, traffic recorder, replay transport and a simulated mouse |
 | `crates/lg-profiles` | Onboard-profile codec: descriptor, directory, CRC, profile fields, button bindings, lighting, field-level edits with validation |
 | `crates/lg-snapshot` | Shared device operations: snapshots, backups, guarded edits, first-time profile setup, restore |
 | `crates/hidractl` | Command-line tool |

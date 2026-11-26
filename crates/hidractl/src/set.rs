@@ -91,9 +91,14 @@ pub fn run(device: Option<&Path>, profile: u8, request: Request, yes: bool, back
         .collect();
     let entry = match entries.as_slice() {
         [one] => one,
+        [] if !lg_snapshot::platform_write_verified() => bail!(
+            "writing has not been verified on Windows yet, so it is off. To try it on a G502 Proteus Spectrum or \
+             G502 LIGHTSPEED, set {}=1 and run again; take a `hidractl backup` first",
+            lg_snapshot::WINDOWS_WRITES_ENV
+        ),
         [] => bail!(
             "no write-verified device found. Editing is enabled only for models checked on real hardware \
-             (currently the G502 Proteus Spectrum, 046d:c332)"
+             (currently the G502 Proteus Spectrum, 046d:c332, and the G502 LIGHTSPEED, 046d:407f)"
         ),
         _ => bail!("more than one matching device; pick one with --device"),
     };

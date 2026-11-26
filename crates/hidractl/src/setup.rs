@@ -26,7 +26,10 @@ fn pick(device: Option<&Path>, filter: impl Fn(&DeviceEntry) -> bool, none: &str
 pub fn init_profiles(device: Option<&Path>, yes: bool, allow_unverified: bool, backup_dir: &Path) -> Result<()> {
     let entry = pick(
         device,
-        |e| INIT_VERIFIED_PIDS.contains(&e.product) || (allow_unverified && device.is_some()),
+        |e| {
+            (INIT_VERIFIED_PIDS.contains(&e.product) && lg_snapshot::platform_write_verified())
+                || (allow_unverified && device.is_some())
+        },
         "no supported device found. First-time profile setup has not been verified on real hardware for any \
          model yet",
     )?;
@@ -58,6 +61,12 @@ pub fn init_profiles(device: Option<&Path>, yes: bool, allow_unverified: bool, b
 }
 
 pub fn restore(device: Option<&Path>, backup: &Path, yes: bool) -> Result<()> {
+    if yes && !lg_snapshot::platform_write_verified() {
+        bail!(
+            "writing has not been verified on Windows yet, so it is off. Set {}=1 to restore anyway",
+            lg_snapshot::WINDOWS_WRITES_ENV
+        );
+    }
     let manifest = std::fs::read_to_string(backup.join("manifest.json"))
         .with_context(|| format!("{} is not a backup directory (no manifest.json)", backup.display()))?;
     let manifest: serde_json::Value = serde_json::from_str(&manifest)?;

@@ -41,9 +41,11 @@ impl Source {
 }
 
 /// Where automatic pre-write backups go: `$XDG_DATA_HOME/hidra/backups`,
-/// falling back to `~/.local/share/hidra/backups`.
+/// falling back to `~/.local/share/hidra/backups`; on Windows,
+/// `%LOCALAPPDATA%\hidra\backups`.
 pub fn default_backup_dir() -> PathBuf {
-    let base = std::env::var_os("XDG_DATA_HOME")
+    let preferred = if cfg!(windows) { "LOCALAPPDATA" } else { "XDG_DATA_HOME" };
+    let base = std::env::var_os(preferred)
         .map(PathBuf::from)
         .filter(|p| p.is_absolute())
         .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".local/share")))

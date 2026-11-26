@@ -167,3 +167,16 @@ Additional references:
 
 - [PeriHub onboard profile protocol notes: ROM fallback and 255-byte sectors](https://gh.poscat.moe/hex-dump/perihub/docs/protocols/logitech-onboard-profiles.md)
 - [Rust `omm-rust`: direct HID++ device access and onboard editor](https://github.com/rareinator/omm-rust) (only one tested mouse; macros, rate, names, and lighting are limitations)
+
+## Windows (2026-11-26, not yet run on hardware)
+
+What differs from Linux, and how the code handles it:
+
+- **One path per collection.** Windows exposes each top-level collection of a HID interface as its own device path. HID++ short reports (ID 0x10) and long reports (0x11) are in different collections, so each is written to its own handle and replies are read from both (`transport_windows.rs`). Collections are matched to a device by the path's hardware ID without `&colNN` and its instance ID without the last segment.
+- **Which collection carries what** is taken from usage page and usage: page 0xff00 usage 1 (short) and 2 (long); page 0xff43 with the report kinds as bits of the usage's low byte. The 0xff43 form is from Solaar and libratbag sources, not from a device seen here.
+- **No per-mouse node behind a receiver.** `hid-logitech-dj` on Linux creates a node per paired mouse, answering at device index 0xff. Windows has only the receiver, and the mouse answers at its slot number (1-6) as device index. Paired devices are found with the HID++ 1.0 "get long register" request for register 0x2b5, sub-address 0x20 + slot - 1; the reply carries the wireless product ID big-endian in bytes 7-8 of the report.
+  - Verified on Linux against the real receiver (046d:c539) with `HIDRA_RECEIVER_SLOTS=1 hidractl list`: slot 1 reported 407f while the mouse was asleep. Addressing the sleeping mouse at index 1 gave the expected "not connected" HID++ 1.0 error. A full read through the slot has not been done yet (the mouse was asleep).
+  - Bolt receivers (c548) use sub-address 0x50 + slot and a little-endian product ID, per Solaar. Untested.
+- **Writes are off on Windows** until one guarded write has been verified there (`HIDRA_WINDOWS_WRITES=1` opts in).
+
+Open questions for the first Windows report: whether both collections open without administrator rights while G HUB is closed, whether a write shorter than the collection's report length is accepted (ours are exact: 7 and 20 bytes), and whether G HUB running in the background interferes with reads.

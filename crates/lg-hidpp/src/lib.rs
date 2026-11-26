@@ -1,4 +1,4 @@
-//! Access to Logitech HID++ 2.0 devices over Linux hidraw.
+//! Access to Logitech HID++ 2.0 devices over Linux hidraw or Windows HID.
 //!
 //! Almost everything here is read-only. Request dispatch ([`Device::call`])
 //! is crate-private, so callers cannot send arbitrary functions. The single
@@ -11,6 +11,7 @@ pub mod discovery;
 mod device;
 mod error;
 pub mod features;
+pub mod receiver;
 pub mod record;
 pub mod replay;
 pub mod sim;
@@ -20,7 +21,7 @@ mod transport;
 pub use device::{Device, FeatureEntry, FeatureFlags};
 pub use error::{Error, Hidpp10Error, Hidpp20Error, Result};
 pub use report::{Incoming, Request, SOFTWARE_ID};
-pub use transport::{HidrawTransport, Transport};
+pub use transport::{HidTransport, Transport};
 
 /// Device index for a directly connected (wired, or DJ child hidraw) device.
 pub const DEVICE_INDEX_DIRECT: u8 = 0xff;

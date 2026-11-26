@@ -1,11 +1,16 @@
 [package]
 name = "lg-hidpp"
-description = "Logitech HID++ 2.0 transport and feature access for Linux hidraw"
+description = "Logitech HID++ 2.0 transport and feature access over Linux hidraw and Windows HID"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
 publish.workspace = true
 
 [dependencies]
-libc.workspace = true
 thiserror.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+hidapi = { version = "2.6", default-features = false, features = ["windows-native"] }

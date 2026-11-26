@@ -14,18 +14,22 @@ use std::time::Duration;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
-use lg_hidpp::discovery::{self, NodeKind};
+use lg_hidpp::discovery;
 use lg_hidpp::features::{self, adjustable_dpi, battery_voltage, device_info, device_name, onboard_profiles, report_rate};
 use lg_hidpp::replay::{ReplayTransport, parse_log};
-use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidrawTransport, Transport};
+use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidTransport, Transport};
 use lg_profiles::{Descriptor, Directory, Profile, Sector};
 
 #[derive(Parser)]
 #[command(version, about = "Inspector, backup, device-report and DPI tool for Logitech HID++ mice")]
 struct Cli {
-    /// hidraw node to use (default: every detected Logitech HID++ device).
+    /// Device node to use: a hidraw node on Linux, a HID path on Windows
+    /// (default: every detected Logitech HID++ device).
     #[arg(long, global = true, conflicts_with = "replay")]
     device: Option<PathBuf>,
+    /// With --device naming a receiver: the slot (1-6) of the paired device.
+    #[arg(long, global = true, requires = "device", value_parser = clap::value_parser!(u8).range(1..=6))]
+    device_index: Option<u8>,
     /// Answer requests from a `ratbagd --verbose=raw` log instead of hardware.
     #[arg(long, global = true)]
     replay: Option<PathBuf>,
@@ -186,7 +190,7 @@ fn main() -> Result<()> {
 
 /// Either a live hidraw node or a replayed log, behind one transport type.
 enum AnyTransport {
-    Hidraw(HidrawTransport),
+    Hidraw(HidTransport),
     Replay(ReplayTransport),
 }
 
@@ -242,22 +246,30 @@ fn open_targets(cli: &Cli) -> Result<Vec<(String, Dev)>> {
         return Ok(vec![(label, dev)]);
     }
 
-    let paths: Vec<(String, PathBuf)> = match &cli.device {
-        Some(p) => vec![(p.display().to_string(), p.clone())],
-        None => discovery::enumerate()?
+    let paths: Vec<(String, PathBuf, u8)> = match &cli.device {
+        Some(p) => vec![(p.display().to_string(), p.clone(), cli.device_index.unwrap_or(DEVICE_INDEX_DIRECT))],
+        None => discovery::devices()?
             .into_iter()
-            .filter(|n| n.kind == NodeKind::Device)
-            .map(|n| (format!("{} ({})", n.model_name(), n.dev_path.display()), n.dev_path))
+            .map(|n| {
+                let slot = match n.device_index {
+                    DEVICE_INDEX_DIRECT => String::new(),
+                    slot => format!(", receiver slot {slot}"),
+                };
+                (format!("{} ({}{slot})", n.model_name(), n.dev_path.display()), n.dev_path, n.device_index)
+            })
             .collect(),
     };
     if paths.is_empty() {
         bail!("no Logitech HID++ devices found");
     }
     let mut out = Vec::new();
-    for (label, path) in paths {
-        let transport = match HidrawTransport::open(&path) {
+    for (label, path, index) in paths {
+        let transport = match HidTransport::open(&path) {
             Ok(t) => t,
             Err(e) if e.kind() == ErrorKind::PermissionDenied => {
+                if cfg!(windows) {
+                    bail!("access denied opening {}. Close other Logitech software and try again", path.display())
+                }
                 bail!(
                     "permission denied opening {}. Install packaging/70-hidra.rules (see README) or run as root",
                     path.display()
@@ -265,7 +277,7 @@ fn open_targets(cli: &Cli) -> Result<Vec<(String, Dev)>> {
             }
             Err(e) => return Err(e).with_context(|| format!("opening {}", path.display())),
         };
-        match Device::open(AnyTransport::Hidraw(transport), DEVICE_INDEX_DIRECT) {
+        match Device::open(AnyTransport::Hidraw(transport), index) {
             Ok(dev) => out.push((label, dev)),
             Err(e) => eprintln!("skipping {label}: {e} (asleep or out of range?)"),
         }
@@ -274,12 +286,19 @@ fn open_targets(cli: &Cli) -> Result<Vec<(String, Dev)>> {
 }
 
 fn list() -> Result<()> {
-    let nodes = discovery::enumerate()?;
+    let mut nodes = discovery::enumerate()?;
+    if discovery::uses_receiver_slots() {
+        nodes.extend(discovery::devices()?.into_iter().filter(|n| n.device_index != DEVICE_INDEX_DIRECT));
+    }
     if nodes.is_empty() {
-        println!("no Logitech HID++ hidraw nodes found");
+        println!("no Logitech HID++ devices found");
     }
     for n in nodes {
-        let via = n.via_receiver.map(|p| format!(" via receiver {p:04x}")).unwrap_or_default();
+        let via = match (n.via_receiver, n.device_index) {
+            (Some(p), DEVICE_INDEX_DIRECT) => format!(" via receiver {p:04x}"),
+            (Some(p), slot) => format!(" via receiver {p:04x} slot {slot}"),
+            (None, _) => String::new(),
+        };
         println!(
             "{}  {:04x}:{:04x}  {:<24} {:?}{via}  \"{}\"",
             n.dev_path.display(),

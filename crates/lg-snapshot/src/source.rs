@@ -2,11 +2,11 @@ use std::io::{self, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
-use lg_hidpp::discovery::{self, NodeKind};
+use lg_hidpp::discovery;
 use lg_hidpp::features::onboard_profiles;
 use lg_hidpp::replay::{ReplayTransport, parse_log};
 use lg_hidpp::sim::{SimMemory, SimMouse};
-use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidrawTransport};
+use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidTransport};
 
 use crate::snapshot::{DeviceSnapshot, read_device};
 use crate::{AnyTransport, REPLAY_TIMEOUT};
@@ -47,7 +47,8 @@ impl Connection {
 /// Where to read a device from.
 #[derive(Debug, Clone)]
 pub enum DeviceSource {
-    Hidraw(PathBuf),
+    /// A live device: its node, and the HID++ device index that reaches it.
+    Hidraw { path: PathBuf, index: u8 },
     Replay { log: PathBuf, segment: String },
     /// A simulated mouse whose memory persists for the life of the entry.
     Sim(Arc<Mutex<SimMemory>>),
@@ -56,7 +57,7 @@ pub enum DeviceSource {
 impl PartialEq for DeviceSource {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Hidraw(a), Self::Hidraw(b)) => a == b,
+            (Self::Hidraw { path: a, index: ia }, Self::Hidraw { path: b, index: ib }) => a == b && ia == ib,
             (Self::Replay { log: a, segment: sa }, Self::Replay { log: b, segment: sb }) => a == b && sa == sb,
             (Self::Sim(a), Self::Sim(b)) => Arc::ptr_eq(a, b),
             _ => false,
@@ -65,6 +66,17 @@ impl PartialEq for DeviceSource {
 }
 
 impl Eq for DeviceSource {}
+
+/// Set to `1` to enable writes on Windows, where no write has been checked
+/// on real hardware yet.
+pub const WINDOWS_WRITES_ENV: &str = "HIDRA_WINDOWS_WRITES";
+
+/// True when writing has been verified on this operating system, or the user
+/// opted in through [`WINDOWS_WRITES_ENV`]. Models are verified on Linux; the
+/// Windows transport has not carried a write yet.
+pub fn platform_write_verified() -> bool {
+    !cfg!(windows) || std::env::var_os(WINDOWS_WRITES_ENV).is_some_and(|v| v == "1")
+}
 
 /// One detected device, before it has been opened.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -82,10 +94,13 @@ pub struct DeviceEntry {
 
 impl DeviceEntry {
     /// True when profile edits are enabled for this device: live hardware of
-    /// a model whose write path has been verified.
+    /// a model whose write path has been verified, on a platform where
+    /// writing has been ([`platform_write_verified`]).
     pub fn write_verified(&self) -> bool {
         match self.source {
-            DeviceSource::Hidraw(_) => crate::WRITE_VERIFIED_PIDS.contains(&self.product),
+            DeviceSource::Hidraw { .. } => {
+                crate::WRITE_VERIFIED_PIDS.contains(&self.product) && platform_write_verified()
+            }
             DeviceSource::Sim(_) => true,
             DeviceSource::Replay { .. } => false,
         }
@@ -94,7 +109,7 @@ impl DeviceEntry {
     /// Human-readable location: `/dev/hidraw7`, or the capture file name.
     pub fn location(&self) -> String {
         match &self.source {
-            DeviceSource::Hidraw(p) => p.display().to_string(),
+            DeviceSource::Hidraw { path, .. } => path.display().to_string(),
             DeviceSource::Replay { log, .. } => {
                 log.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| log.display().to_string())
             }
@@ -118,20 +133,22 @@ pub enum ReadError {
     Other(String),
 }
 
-/// Find every Logitech HID++ device node (receivers themselves are skipped).
+/// Find every Logitech HID++ device (receivers themselves are skipped).
 pub fn discover() -> io::Result<Vec<DeviceEntry>> {
-    Ok(discovery::enumerate()?
+    Ok(discovery::devices()?
         .into_iter()
-        .filter(|n| n.kind == NodeKind::Device)
         .map(|n| DeviceEntry {
-            id: n.dev_path.display().to_string(),
+            id: match n.device_index {
+                DEVICE_INDEX_DIRECT => n.dev_path.display().to_string(),
+                slot => format!("{}#{slot}", n.dev_path.display()),
+            },
             product: n.product,
             model: n.model_name().to_string(),
             connection: match n.via_receiver {
                 Some(pid) => Connection::Receiver(pid),
                 None => Connection::Wired,
             },
-            source: DeviceSource::Hidraw(n.dev_path),
+            source: DeviceSource::Hidraw { path: n.dev_path, index: n.device_index },
         })
         .collect())
 }
@@ -219,12 +236,12 @@ pub fn simulated_entry_from_log(text: &str, segment: &str) -> Result<DeviceEntry
 /// Open a device and enumerate its features. Blocking.
 pub fn open_entry(entry: &DeviceEntry) -> Result<Device<AnyTransport>, ReadError> {
     match &entry.source {
-        DeviceSource::Hidraw(path) => {
-            let transport = HidrawTransport::open(path).map_err(|e| match e.kind() {
+        DeviceSource::Hidraw { path, index } => {
+            let transport = HidTransport::open(path).map_err(|e| match e.kind() {
                 ErrorKind::PermissionDenied => ReadError::PermissionDenied { path: path.display().to_string() },
                 _ => ReadError::Other(format!("opening {}: {e}", path.display())),
             })?;
-            Device::open(AnyTransport::Hidraw(transport), DEVICE_INDEX_DIRECT)
+            Device::open(AnyTransport::Hidraw(transport), *index)
                 .map_err(|e| ReadError::Unreachable(e.to_string()))
         }
         DeviceSource::Sim(memory) => {

@@ -191,7 +191,7 @@ impl MiceWindow {
             return None;
         }
         let readonly = if !entry.write_verified() {
-            Some("Editing isn't verified for this mouse yet.".into())
+            Some(format!("{}.", unverified_reason()).into())
         } else if profile.factory {
             Some("Factory profiles can't be edited.".into())
         } else {
@@ -716,7 +716,7 @@ impl MiceWindow {
         };
         let can_edit = self.can_edit_shown_profile();
         let edit_unavailable = if !entry.write_verified() {
-            "Editing isn't verified for this mouse yet"
+            unverified_reason()
         } else if set.factory {
             "Factory profiles can't be edited"
         } else {
@@ -837,6 +837,15 @@ fn render_loading() -> impl IntoElement {
                 .child(Skeleton::new().h_8().w(rems(20.)))
                 .child(Skeleton::new().h(rems(16.)).w_full()),
         )
+}
+
+/// Why a live mouse can't be edited.
+fn unverified_reason() -> &'static str {
+    if lg_snapshot::platform_write_verified() {
+        "Editing isn't verified for this mouse yet"
+    } else {
+        "Editing isn't verified on Windows yet"
+    }
 }
 
 impl Focusable for MiceWindow {

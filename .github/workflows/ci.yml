@@ -17,9 +17,39 @@ jobs:
       - name: Clippy
         run: cargo clippy -p lg-hidpp -p lg-profiles -p lg-snapshot -p hidractl --all-targets -- -D warnings
 
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Test (device layers and CLI)
+        run: cargo test -p lg-hidpp -p lg-profiles -p lg-snapshot -p hidractl
+      - name: Clippy
+        run: cargo clippy -p lg-hidpp -p lg-profiles -p lg-snapshot -p hidractl --all-targets -- -D warnings
+      - name: Build the command-line tool
+        run: cargo build --release -p hidractl
+      # The viewer has not been built on Windows before; a failure here is
+      # reported but does not fail the run.
+      - name: Build the viewer
+        id: viewer
+        continue-on-error: true
+        run: cargo build --release -p hidra
+      - name: Collect binaries
+        shell: bash
+        run: |
+          mkdir dist
+          cp target/release/hidractl.exe dist/hidractl-x86_64-windows.exe
+          if [ -f target/release/hidra.exe ]; then cp target/release/hidra.exe dist/hidra-x86_64-windows.exe; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hidra-windows
+          path: dist/
+
   release-cli:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: test
+    needs: [test, windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -28,6 +58,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release -p hidractl
       - run: cp target/release/hidractl hidractl-x86_64-linux
+      - uses: actions/download-artifact@v4
+        with:
+          name: hidra-windows
+          path: dist
       - uses: softprops/action-gh-release@v2
         with:
-          files: hidractl-x86_64-linux
+          files: |
+            hidractl-x86_64-linux
+            dist/*.exe
