@@ -2,15 +2,10 @@
 
 use std::path::PathBuf;
 
-use lg_snapshot::{
-    Connection, DeviceEntry, DpiRange, Integrity, ReadError, read_entry, replay_entries,
-};
+use lg_snapshot::{Connection, DeviceEntry, DpiRange, Integrity, ReadError, read_entry, replay_entries};
 
 fn capture(name: &str) -> PathBuf {
-    PathBuf::from(format!(
-        "{}/../../captures/ratbagd/{name}",
-        env!("CARGO_MANIFEST_DIR")
-    ))
+    PathBuf::from(format!("{}/../../captures/ratbagd/{name}", env!("CARGO_MANIFEST_DIR")))
 }
 
 fn entry(log: &str, segment: &str) -> DeviceEntry {
@@ -21,52 +16,23 @@ fn entry(log: &str, segment: &str) -> DeviceEntry {
 
 #[test]
 fn proteus_spectrum_snapshot() {
-    let e = entry(
-        "g502-proteus-spectrum-c332.log",
-        "Logitech Gaming Mouse G502",
-    );
+    let e = entry("g502-proteus-spectrum-c332.log", "Logitech Gaming Mouse G502");
     assert_eq!(e.connection, Connection::Replay);
     assert_eq!(e.id, "replay:Logitech Gaming Mouse G502");
     let s = read_entry(&e).expect("read");
     assert_eq!(s.protocol, (4, 2));
-    assert_eq!(
-        s.dpi_range,
-        Some(Ok(DpiRange::Range {
-            min: 50,
-            max: 12000,
-            step: 50
-        }))
-    );
+    assert_eq!(s.dpi_range, Some(Ok(DpiRange::Range { min: 50, max: 12000, step: 50 })));
     assert_eq!(s.sensor_dpi.clone().unwrap().unwrap().current, 12000);
     assert_eq!(s.polling_rates_hz, Some(Ok(vec![125, 250, 500, 1000])));
-    assert_eq!(
-        s.battery_mv, None,
-        "wired Proteus has no battery feature, so it is hidden"
-    );
+    assert_eq!(s.battery_mv, None, "wired Proteus has no battery feature, so it is hidden");
 
     let onboard = s.onboard.expect("onboard feature").expect("onboard read");
-    assert_eq!(
-        (
-            onboard.profile_format,
-            onboard.profile_count,
-            onboard.button_count
-        ),
-        (2, 3, 11)
-    );
+    assert_eq!((onboard.profile_format, onboard.profile_count, onboard.button_count), (2, 3, 11));
     assert_eq!(onboard.active_address, Some(0x0001));
     let set = onboard.profiles.expect("profiles");
     assert!(!set.factory);
-    assert_eq!(
-        set.profiles.iter().map(|p| p.address).collect::<Vec<_>>(),
-        vec![1, 2, 3]
-    );
-    assert_eq!(
-        set.profiles
-            .iter()
-            .map(|p| p.title.as_str())
-            .collect::<Vec<_>>(),
-        ["Profile 1", "Profile 2", "Profile 3"]
-    );
+    assert_eq!(set.profiles.iter().map(|p| p.address).collect::<Vec<_>>(), vec![1, 2, 3]);
+    assert_eq!(set.profiles.iter().map(|p| p.title.as_str()).collect::<Vec<_>>(), ["Profile 1", "Profile 2", "Profile 3"]);
     let active = set.active().expect("one active profile");
     assert_eq!(active.address, 1);
     assert_eq!(set.profiles.iter().filter(|p| p.active).count(), 1);
@@ -78,10 +44,7 @@ fn proteus_spectrum_snapshot() {
     assert_eq!(c.report_rate_hz, 1000);
     assert_eq!(c.buttons.len(), 11);
     assert_eq!(c.buttons[5], "key F24");
-    assert_eq!(
-        c.leds.iter().map(|l| l.zone.as_str()).collect::<Vec<_>>(),
-        ["Logo", "Side"]
-    );
+    assert_eq!(c.leds.iter().map(|l| l.zone.as_str()).collect::<Vec<_>>(), ["Logo", "Side"]);
 
     let p3 = set.profiles[2].content.as_ref().unwrap();
     assert_eq!(p3.report_rate_hz, 500);
@@ -110,11 +73,7 @@ fn lightspeed_snapshot_uses_factory_profile() {
 
 #[test]
 fn unknown_segment_is_an_error() {
-    let err = replay_entries(
-        &capture("both-mice-lightspeed-407f.log"),
-        Some("No such mouse"),
-    )
-    .unwrap_err();
+    let err = replay_entries(&capture("both-mice-lightspeed-407f.log"), Some("No such mouse")).unwrap_err();
     assert!(matches!(err, ReadError::Other(_)));
 }
 

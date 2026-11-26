@@ -13,10 +13,10 @@ mod profile_editor;
 pub mod state;
 pub mod theme;
 
-pub use button_map::{ButtonMap, ButtonMapEvent};
 pub use mice_window::{
-    EditProfile, KEY_CONTEXT, MiceWindow, Quit, Refresh, SelectNextDevice, SelectNextProfile,
-    SelectPreviousDevice, SelectPreviousProfile, ShowDeviceInfo, ToggleTheme, init,
+    EditProfile, KEY_CONTEXT, MiceWindow, Quit, Refresh, SelectNextDevice, SelectNextProfile, SelectPreviousDevice,
+    SelectPreviousProfile, ShowDeviceInfo, ToggleTheme, init,
 };
+pub use button_map::{ButtonMap, ButtonMapEvent};
 pub use profile_editor::{ProfileEditor, ProfileEditorEvent};
 pub use state::Source;

@@ -1,6 +1,4 @@
-use lg_hidpp::features::{
-    adjustable_dpi, battery_voltage, device_info, device_name, onboard_profiles, report_rate,
-};
+use lg_hidpp::features::{adjustable_dpi, battery_voltage, device_info, device_name, onboard_profiles, report_rate};
 use lg_hidpp::{Device, Transport};
 use lg_profiles::{DPI_SLOTS, Descriptor, Directory, LedMode, Profile, Sector};
 
@@ -123,10 +121,7 @@ pub enum Integrity {
     /// Factory ROM sector; no CRC to check.
     Rom,
     CrcOk(u16),
-    CrcMismatch {
-        stored: Option<u16>,
-        computed: Option<u16>,
-    },
+    CrcMismatch { stored: Option<u16>, computed: Option<u16> },
 }
 
 /// One decoded profile.
@@ -177,11 +172,7 @@ pub fn read_device<T: Transport>(dev: &mut Device<T>) -> DeviceSnapshot {
     let firmware = match device_info::device_info(dev) {
         Ok(info) => (0..info.entity_count)
             .filter_map(|e| device_info::firmware_info(dev, e).ok())
-            .map(|f| Firmware {
-                kind: f.kind_name().to_string(),
-                version: f.version_string(),
-                active: f.active,
-            })
+            .map(|f| Firmware { kind: f.kind_name().to_string(), version: f.version_string(), active: f.active })
             .collect(),
         Err(_) => Vec::new(),
     };
@@ -189,10 +180,7 @@ pub fn read_device<T: Transport>(dev: &mut Device<T>) -> DeviceSnapshot {
         protocol: dev.protocol_version(),
         name: reading(device_name::name(dev)),
         firmware,
-        sensor_dpi: reading(adjustable_dpi::sensor_dpi(dev, 0).map(|d| SensorDpi {
-            current: d.current,
-            default: d.default,
-        })),
+        sensor_dpi: reading(adjustable_dpi::sensor_dpi(dev, 0).map(|d| SensorDpi { current: d.current, default: d.default })),
         dpi_range: reading(adjustable_dpi::dpi_list(dev, 0).map(|l| match l {
             adjustable_dpi::DpiList::Range { min, max, step } => DpiRange::Range { min, max, step },
             adjustable_dpi::DpiList::Discrete(v) => DpiRange::Discrete(v),
@@ -222,10 +210,7 @@ fn read_onboard<T: Transport>(dev: &mut Device<T>) -> Option<Result<OnboardSumma
     let profiles = if d.layout_supported() {
         read_profiles(dev, &d, active_address)
     } else {
-        Err(format!(
-            "profile format {} with {}-byte sectors is not supported by this decoder",
-            d.profile_format, d.sector_size
-        ))
+        Err(format!("profile format {} with {}-byte sectors is not supported by this decoder", d.profile_format, d.sector_size))
     };
     Some(Ok(OnboardSummary {
         profile_format: d.profile_format,
@@ -240,30 +225,17 @@ fn read_onboard<T: Transport>(dev: &mut Device<T>) -> Option<Result<OnboardSumma
     }))
 }
 
-fn read_profiles<T: Transport>(
-    dev: &mut Device<T>,
-    d: &Descriptor,
-    active: Option<u16>,
-) -> Result<ProfileSet, String> {
-    let dir_sector = Sector::new(
-        0,
-        onboard_profiles::read_sector(dev, 0, d.sector_size)
-            .map_err(|e| format!("reading directory: {e}"))?,
-    );
+fn read_profiles<T: Transport>(dev: &mut Device<T>, d: &Descriptor, active: Option<u16>) -> Result<ProfileSet, String> {
+    let dir_sector =
+        Sector::new(0, onboard_profiles::read_sector(dev, 0, d.sector_size).map_err(|e| format!("reading directory: {e}"))?);
     // (address, title, enabled)
     let (factory, targets): (bool, Vec<(u16, String, bool)>) = match Directory::parse(&dir_sector) {
-        Some(dir) => (
-            false,
-            dir.entries
-                .iter()
-                .map(|e| (e.sector, format!("Profile {}", e.profile + 1), e.enabled))
-                .collect(),
-        ),
+        Some(dir) => {
+            (false, dir.entries.iter().map(|e| (e.sector, format!("Profile {}", e.profile + 1), e.enabled)).collect())
+        }
         None => (
             true,
-            (1..=d.rom_profile_count as u16)
-                .map(|n| (0x0100 | n, format!("Factory profile {n}"), true))
-                .collect(),
+            (1..=d.rom_profile_count as u16).map(|n| (0x0100 | n, format!("Factory profile {n}"), true)).collect(),
         ),
     };
     let profiles = targets
@@ -280,23 +252,15 @@ fn read_profiles<T: Transport>(
     Ok(ProfileSet { factory, profiles })
 }
 
-fn read_profile<T: Transport>(
-    dev: &mut Device<T>,
-    address: u16,
-    d: &Descriptor,
-) -> Result<ProfileContent, String> {
-    let bytes =
-        onboard_profiles::read_sector(dev, address, d.sector_size).map_err(|e| e.to_string())?;
+fn read_profile<T: Transport>(dev: &mut Device<T>, address: u16, d: &Descriptor) -> Result<ProfileContent, String> {
+    let bytes = onboard_profiles::read_sector(dev, address, d.sector_size).map_err(|e| e.to_string())?;
     let sector = Sector::new(address, bytes);
     let integrity = if sector.is_rom() {
         Integrity::Rom
     } else if sector.crc_valid() {
         Integrity::CrcOk(sector.stored_crc().unwrap_or(0))
     } else {
-        Integrity::CrcMismatch {
-            stored: sector.stored_crc(),
-            computed: sector.computed_crc(),
-        }
+        Integrity::CrcMismatch { stored: sector.stored_crc(), computed: sector.computed_crc() }
     };
     let p = Profile::decode(sector, d.button_count).map_err(|e| e.to_string())?;
     let leds = ["Logo", "Side"]

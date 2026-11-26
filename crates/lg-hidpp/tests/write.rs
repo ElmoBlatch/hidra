@@ -14,11 +14,7 @@ fn crc_ccitt(data: &[u8]) -> u16 {
     for &byte in data {
         crc ^= (byte as u16) << 8;
         for _ in 0..8 {
-            crc = if crc & 0x8000 != 0 {
-                (crc << 1) ^ 0x1021
-            } else {
-                crc << 1
-            };
+            crc = if crc & 0x8000 != 0 { (crc << 1) ^ 0x1021 } else { crc << 1 };
         }
     }
     crc
@@ -33,27 +29,14 @@ fn with_crc(mut sector: Vec<u8>) -> Vec<u8> {
 
 /// Four 256-byte sectors with distinct contents and valid CRCs.
 fn memory() -> Arc<Mutex<SimMemory>> {
-    let descriptor = [
-        0x01, 0x02, 0x01, 0x03, 0x03, 0x0b, 0x10, 0x01, 0x00, 0x0a, 0x01, 0, 0, 0, 0, 0,
-    ];
-    let sectors: BTreeMap<u16, Vec<u8>> = (0..4u16)
-        .map(|i| {
-            (
-                i,
-                with_crc(vec![(i as u8).wrapping_mul(17).wrapping_add(1); 256]),
-            )
-        })
-        .collect();
+    let descriptor = [0x01, 0x02, 0x01, 0x03, 0x03, 0x0b, 0x10, 0x01, 0x00, 0x0a, 0x01, 0, 0, 0, 0, 0];
+    let sectors: BTreeMap<u16, Vec<u8>> =
+        (0..4u16).map(|i| (i, with_crc(vec![(i as u8).wrapping_mul(17).wrapping_add(1); 256]))).collect();
     SimMemory::new(descriptor, sectors, 1).shared()
 }
 
 fn open(memory: &Arc<Mutex<SimMemory>>) -> Device<SimMouse> {
-    Device::open_with_timeout(
-        SimMouse::new(memory.clone()),
-        DEVICE_INDEX_DIRECT,
-        Duration::from_millis(50),
-    )
-    .unwrap()
+    Device::open_with_timeout(SimMouse::new(memory.clone()), DEVICE_INDEX_DIRECT, Duration::from_millis(50)).unwrap()
 }
 
 /// A valid replacement for sector 1: change two bytes, fix the CRC.
@@ -68,20 +51,14 @@ fn edited(original: &[u8]) -> Vec<u8> {
 fn replace_writes_and_only_touches_the_target_sector() {
     let mem = memory();
     let mut dev = open(&mem);
-    let before: Vec<Vec<u8>> = (0..4)
-        .map(|s| read_sector(&mut dev, s, 256).unwrap())
-        .collect();
+    let before: Vec<Vec<u8>> = (0..4).map(|s| read_sector(&mut dev, s, 256).unwrap()).collect();
     let new = edited(&before[1]);
 
     replace_sector(&mut dev, 1, &before[1], &new).unwrap();
 
     assert_eq!(read_sector(&mut dev, 1, 256).unwrap(), new);
     for s in [0u16, 2, 3] {
-        assert_eq!(
-            read_sector(&mut dev, s, 256).unwrap(),
-            before[s as usize],
-            "sector {s} untouched"
-        );
+        assert_eq!(read_sector(&mut dev, s, 256).unwrap(), before[s as usize], "sector {s} untouched");
     }
     assert_eq!(mem.lock().unwrap().begin_writes, 1);
 }
@@ -116,18 +93,9 @@ fn bad_crc_wrong_size_and_rom_addresses_are_refused() {
     let current = read_sector(&mut dev, 1, 256).unwrap();
     let mut bad_crc = edited(&current);
     bad_crc[255] ^= 1;
-    assert!(matches!(
-        replace_sector(&mut dev, 1, &current, &bad_crc),
-        Err(Error::WriteRefused { .. })
-    ));
-    assert!(matches!(
-        replace_sector(&mut dev, 1, &current, &current[..240]),
-        Err(Error::WriteRefused { .. })
-    ));
-    assert!(matches!(
-        replace_sector(&mut dev, 0x0101, &current, &edited(&current)),
-        Err(Error::WriteRefused { .. })
-    ));
+    assert!(matches!(replace_sector(&mut dev, 1, &current, &bad_crc), Err(Error::WriteRefused { .. })));
+    assert!(matches!(replace_sector(&mut dev, 1, &current, &current[..240]), Err(Error::WriteRefused { .. })));
+    assert!(matches!(replace_sector(&mut dev, 0x0101, &current, &edited(&current)), Err(Error::WriteRefused { .. })));
     assert_eq!(mem.lock().unwrap().begin_writes, 0);
 }
 
@@ -139,15 +107,8 @@ fn a_write_that_fails_midway_is_rolled_back() {
     let current = read_sector(&mut dev, 1, 256).unwrap();
 
     let err = replace_sector(&mut dev, 1, &current, &edited(&current)).unwrap_err();
-    assert!(
-        matches!(err, Error::WriteFailed { restored: true, .. }),
-        "{err}"
-    );
-    assert_eq!(
-        read_sector(&mut dev, 1, 256).unwrap(),
-        current,
-        "original contents are back"
-    );
+    assert!(matches!(err, Error::WriteFailed { restored: true, .. }), "{err}");
+    assert_eq!(read_sector(&mut dev, 1, 256).unwrap(), current, "original contents are back");
 }
 
 #[test]
@@ -159,9 +120,7 @@ fn a_write_that_lands_wrong_is_caught_by_read_back_and_rolled_back() {
 
     let err = replace_sector(&mut dev, 1, &current, &edited(&current)).unwrap_err();
     match err {
-        Error::WriteFailed {
-            restored, cause, ..
-        } => {
+        Error::WriteFailed { restored, cause, .. } => {
             assert!(restored);
             assert!(cause.contains("read-back"), "{cause}");
         }

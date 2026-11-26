@@ -41,18 +41,7 @@ impl HidrawNode {
 pub fn is_receiver_pid(pid: u16) -> bool {
     matches!(
         pid,
-        0xc52b
-            | 0xc52f
-            | 0xc532
-            | 0xc534
-            | 0xc539
-            | 0xc53a
-            | 0xc53d
-            | 0xc53f
-            | 0xc541
-            | 0xc545
-            | 0xc547
-            | 0xc548
+        0xc52b | 0xc52f | 0xc532 | 0xc534 | 0xc539 | 0xc53a | 0xc53d | 0xc53f | 0xc541 | 0xc545 | 0xc547 | 0xc548
     )
 }
 
@@ -79,18 +68,12 @@ pub fn enumerate() -> io::Result<Vec<HidrawNode>> {
     for entry in dir.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
         let sys = entry.path();
-        let Ok(uevent) = fs::read_to_string(sys.join("device/uevent")) else {
-            continue;
-        };
-        let Some((bus, vendor, product)) = parse_hid_id(&uevent) else {
-            continue;
-        };
+        let Ok(uevent) = fs::read_to_string(sys.join("device/uevent")) else { continue };
+        let Some((bus, vendor, product)) = parse_hid_id(&uevent) else { continue };
         if vendor != LOGITECH_VID {
             continue;
         }
-        let Ok(desc) = fs::read(sys.join("device/report_descriptor")) else {
-            continue;
-        };
+        let Ok(desc) = fs::read(sys.join("device/report_descriptor")) else { continue };
         let ids = report_ids(&desc);
         let (short_reports, long_reports) = (ids.contains(&0x10), ids.contains(&0x11));
         if !short_reports && !long_reports {
@@ -108,11 +91,7 @@ pub fn enumerate() -> io::Result<Vec<HidrawNode>> {
             product,
             bus,
             name: hid_name,
-            kind: if is_receiver_pid(product) {
-                NodeKind::Receiver
-            } else {
-                NodeKind::Device
-            },
+            kind: if is_receiver_pid(product) { NodeKind::Receiver } else { NodeKind::Device },
             short_reports,
             long_reports,
             via_receiver,
@@ -125,12 +104,7 @@ pub fn enumerate() -> io::Result<Vec<HidrawNode>> {
 /// HID++ short/long support for an opened `/dev/hidrawN` path.
 pub(crate) fn hidpp_report_support_for_dev(dev: &Path) -> Option<(bool, bool)> {
     let name = dev.file_name()?;
-    let desc = fs::read(
-        Path::new("/sys/class/hidraw")
-            .join(name)
-            .join("device/report_descriptor"),
-    )
-    .ok()?;
+    let desc = fs::read(Path::new("/sys/class/hidraw").join(name).join("device/report_descriptor")).ok()?;
     let ids = report_ids(&desc);
     Some((ids.contains(&0x10), ids.contains(&0x11)))
 }
@@ -142,10 +116,7 @@ fn receiver_parent(sys: &Path) -> Option<u16> {
     let parent = real.parent()?.file_name()?.to_string_lossy().to_string();
     let mut parts = parent.split(['.', ':']);
     let (_bus, vid, pid) = (parts.next()?, parts.next()?, parts.next()?);
-    let (vid, pid) = (
-        u16::from_str_radix(vid, 16).ok()?,
-        u16::from_str_radix(pid, 16).ok()?,
-    );
+    let (vid, pid) = (u16::from_str_radix(vid, 16).ok()?, u16::from_str_radix(pid, 16).ok()?);
     (vid == LOGITECH_VID && is_receiver_pid(pid)).then_some(pid)
 }
 
@@ -172,12 +143,10 @@ pub fn report_ids(desc: &[u8]) -> Vec<u8> {
             3 => 4,
             n => n as usize,
         };
-        if prefix & 0xfc == 0x84
-            && size >= 1
-            && let Some(&id) = desc.get(i + 1)
-        {
-            ids.push(id);
-        }
+        if prefix & 0xfc == 0x84 && size >= 1
+            && let Some(&id) = desc.get(i + 1) {
+                ids.push(id);
+            }
         i += 1 + size;
     }
     ids
@@ -189,18 +158,13 @@ mod tests {
 
     #[test]
     fn hid_id() {
-        assert_eq!(
-            parse_hid_id("DRIVER=x\nHID_ID=0003:0000046D:0000C332\n"),
-            Some((3, 0x046d, 0xc332))
-        );
+        assert_eq!(parse_hid_id("DRIVER=x\nHID_ID=0003:0000046D:0000C332\n"), Some((3, 0x046d, 0xc332)));
     }
 
     #[test]
     fn descriptor_report_ids() {
         // Vendor usage page 0xff00, report ID 0x10, then report ID 0x11.
-        let desc = [
-            0x06, 0x00, 0xff, 0x09, 0x01, 0xa1, 0x01, 0x85, 0x10, 0x95, 0x06, 0x85, 0x11, 0xc0,
-        ];
+        let desc = [0x06, 0x00, 0xff, 0x09, 0x01, 0xa1, 0x01, 0x85, 0x10, 0x95, 0x06, 0x85, 0x11, 0xc0];
         assert_eq!(report_ids(&desc), vec![0x10, 0x11]);
     }
 }

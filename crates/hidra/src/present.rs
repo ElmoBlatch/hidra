@@ -3,10 +3,7 @@
 //! Pure functions with no GPUI dependency, so the wording and the rules for
 //! hiding unsupported fields are tested directly against replayed captures.
 
-use lg_snapshot::{
-    DeviceEntry, DeviceSnapshot, Integrity, OnboardSummary, ProfileContent, ProfileSnapshot,
-    Reading,
-};
+use lg_snapshot::{DeviceEntry, DeviceSnapshot, Integrity, OnboardSummary, ProfileContent, ProfileSnapshot, Reading};
 
 /// One labelled value in the device summary.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,10 +14,7 @@ pub struct Fact {
 
 impl Fact {
     fn new(label: impl Into<String>, value: impl Into<String>) -> Self {
-        Self {
-            label: label.into(),
-            value: value.into(),
-        }
+        Self { label: label.into(), value: value.into() }
     }
 }
 
@@ -28,12 +22,7 @@ const UNAVAILABLE: &str = "Unavailable";
 
 /// Push a fact for an optional reading: hidden when the feature is missing,
 /// "Unavailable" when the read failed.
-fn push_reading<T>(
-    facts: &mut Vec<Fact>,
-    label: &str,
-    r: &Reading<T>,
-    show: impl FnOnce(&T) -> String,
-) {
+fn push_reading<T>(facts: &mut Vec<Fact>, label: &str, r: &Reading<T>, show: impl FnOnce(&T) -> String) {
     match r {
         None => {}
         Some(Ok(v)) => facts.push(Fact::new(label, show(v))),
@@ -52,9 +41,7 @@ pub fn sentence_case(s: &str) -> String {
 
 /// The device title: its reported name, else the model name from discovery.
 pub fn device_title(entry: &DeviceEntry, snapshot: Option<&DeviceSnapshot>) -> String {
-    snapshot
-        .and_then(|s| s.name.as_ref()?.as_ref().ok().cloned())
-        .unwrap_or_else(|| entry.model.clone())
+    snapshot.and_then(|s| s.name.as_ref()?.as_ref().ok().cloned()).unwrap_or_else(|| entry.model.clone())
 }
 
 /// Facts for the device summary, in display order.
@@ -65,34 +52,18 @@ pub fn summary_facts(entry: &DeviceEntry, s: &DeviceSnapshot) -> Vec<Fact> {
     facts.push(Fact::new("Device node", entry.location()));
     for fw in &s.firmware {
         let version = fw.version.trim();
-        facts.push(Fact::new(
-            format!("{} firmware", sentence_case(&fw.kind)),
-            version,
-        ));
+        facts.push(Fact::new(format!("{} firmware", sentence_case(&fw.kind)), version));
     }
     push_reading(&mut facts, "Sensor DPI", &s.sensor_dpi, |d| {
-        if d.default == 0 {
-            d.current.to_string()
-        } else {
-            format!("{} (default {})", d.current, d.default)
-        }
+        if d.default == 0 { d.current.to_string() } else { format!("{} (default {})", d.current, d.default) }
     });
     push_reading(&mut facts, "DPI range", &s.dpi_range, |r| r.label());
-    push_reading(&mut facts, "Polling rate", &s.polling_rate_hz, |hz| {
-        format!("{hz} Hz")
-    });
+    push_reading(&mut facts, "Polling rate", &s.polling_rate_hz, |hz| format!("{hz} Hz"));
     push_reading(&mut facts, "Supported rates", &s.polling_rates_hz, |v| {
-        format!(
-            "{} Hz",
-            v.iter().map(u16::to_string).collect::<Vec<_>>().join(", ")
-        )
+        format!("{} Hz", v.iter().map(u16::to_string).collect::<Vec<_>>().join(", "))
     });
     push_reading(&mut facts, "Battery", &s.battery_mv, |&(mv, charging)| {
-        if charging {
-            format!("{mv} mV, charging")
-        } else {
-            format!("{mv} mV")
-        }
+        if charging { format!("{mv} mV, charging") } else { format!("{mv} mV") }
     });
     match &s.onboard {
         None => {}
@@ -102,29 +73,17 @@ pub fn summary_facts(entry: &DeviceEntry, s: &DeviceSnapshot) -> Vec<Fact> {
             facts.push(Fact::new("Profile memory", profile_memory(o)));
         }
     }
-    facts.push(Fact::new(
-        "HID++ protocol",
-        format!("{}.{}", s.protocol.0, s.protocol.1),
-    ));
+    facts.push(Fact::new("HID++ protocol", format!("{}.{}", s.protocol.0, s.protocol.1)));
     facts
 }
 
 /// Where each profile is stored, for the device info sheet.
 pub fn storage_facts(s: &DeviceSnapshot) -> Vec<Fact> {
-    let Some(Ok(o)) = &s.onboard else {
-        return Vec::new();
-    };
-    let Ok(set) = &o.profiles else {
-        return Vec::new();
-    };
+    let Some(Ok(o)) = &s.onboard else { return Vec::new() };
+    let Ok(set) = &o.profiles else { return Vec::new() };
     set.profiles
         .iter()
-        .filter_map(|p| {
-            p.content
-                .as_ref()
-                .ok()
-                .map(|c| Fact::new(p.title.clone(), profile_storage(p, c)))
-        })
+        .filter_map(|p| p.content.as_ref().ok().map(|c| Fact::new(p.title.clone(), profile_storage(p, c))))
         .collect()
 }
 
@@ -219,11 +178,7 @@ const G502_BUTTONS: [(Option<&str>, &str, &[&str]); 11] = [
     (Some("G6"), "Sniper", &["DPI shift (sniper)"]),
     (Some("G7"), "Top button, rear", &["DPI down"]),
     (Some("G8"), "Top button, front", &["DPI up"]),
-    (
-        Some("G9"),
-        "Behind the wheel",
-        &["cycle profile", "show battery level"],
-    ),
+    (Some("G9"), "Behind the wheel", &["cycle profile", "show battery level"]),
     (None, "Wheel tilt right", &["wheel tilt right"]),
     (None, "Wheel tilt left", &["wheel tilt left"]),
 ];
@@ -259,19 +214,12 @@ pub fn button_rows(c: &ProfileContent, g502_layout: bool) -> Vec<ButtonRow> {
         .enumerate()
         .map(|(ix, action)| {
             let (key, name, remapped) = match G502_BUTTONS.get(ix).filter(|_| g502_layout) {
-                Some((key, name, factory)) => (
-                    key.map(str::to_string),
-                    name.to_string(),
-                    !factory.contains(&action.as_str()),
-                ),
+                Some((key, name, factory)) => {
+                    (key.map(str::to_string), name.to_string(), !factory.contains(&action.as_str()))
+                }
                 None => (None, format!("Button {}", ix + 1), false),
             };
-            ButtonRow {
-                key,
-                name,
-                action: action_label(action),
-                remapped,
-            }
+            ButtonRow { key, name, action: action_label(action), remapped }
         })
         .collect()
 }
@@ -302,29 +250,17 @@ pub struct Stat {
 pub fn headline_stats(s: &DeviceSnapshot) -> Vec<Stat> {
     let mut stats = Vec::new();
     if let Some(Ok(d)) = &s.sensor_dpi {
-        stats.push(Stat {
-            label: "Sensor",
-            value: grouped(d.current.into()),
-            unit: Some("DPI".into()),
-        });
+        stats.push(Stat { label: "Sensor", value: grouped(d.current.into()), unit: Some("DPI".into()) });
     }
     if let Some(Ok(hz)) = &s.polling_rate_hz {
-        stats.push(Stat {
-            label: "Polling",
-            value: grouped((*hz).into()),
-            unit: Some("Hz".into()),
-        });
+        stats.push(Stat { label: "Polling", value: grouped((*hz).into()), unit: Some("Hz".into()) });
     }
     if let Some(Ok((mv, charging))) = &s.battery_mv {
         let volts = format!("{}.{:02}", mv / 1000, (mv % 1000) / 10);
         stats.push(Stat {
             label: "Battery",
             value: volts,
-            unit: Some(if *charging {
-                "V, charging".into()
-            } else {
-                "V".into()
-            }),
+            unit: Some(if *charging { "V, charging".into() } else { "V".into() }),
         });
     }
     if let Some(Ok(o)) = &s.onboard
@@ -334,11 +270,7 @@ pub fn headline_stats(s: &DeviceSnapshot) -> Vec<Stat> {
             Some(p) => p.title.clone(),
             None => "None".into(),
         };
-        stats.push(Stat {
-            label: "Active profile",
-            value,
-            unit: None,
-        });
+        stats.push(Stat { label: "Active profile", value, unit: None });
     }
     stats
 }
@@ -346,11 +278,7 @@ pub fn headline_stats(s: &DeviceSnapshot) -> Vec<Stat> {
 /// Bar length for a DPI stage as a fraction of the profile's highest stage.
 pub fn stage_fraction(dpi: u16, c: &ProfileContent) -> f32 {
     let max = c.dpi_stages.iter().copied().max().unwrap_or(0);
-    if max == 0 {
-        0.0
-    } else {
-        f32::from(dpi) / f32::from(max)
-    }
+    if max == 0 { 0.0 } else { f32::from(dpi) / f32::from(max) }
 }
 
 /// True when a button in this profile is bound to DPI shift, so the shift

@@ -14,10 +14,9 @@ use gpui_kit::component::{
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    AnyElement, App, Bounds, Context, EventEmitter, FocusHandle, Hsla, InteractiveElement as _,
-    IntoElement, KeyBinding, ParentElement as _, PathBuilder, Pixels, Render, ScrollHandle,
-    SharedString, StatefulInteractiveElement as _, Styled as _, Subscription, Window, actions,
-    canvas, div, point, px, rems,
+    AnyElement, App, Bounds, Context, EventEmitter, FocusHandle, Hsla, InteractiveElement as _, IntoElement,
+    KeyBinding, ParentElement as _, PathBuilder, Pixels, Render, ScrollHandle, SharedString,
+    StatefulInteractiveElement as _, Styled as _, Subscription, Window, actions, canvas, div, point, px, rems,
 };
 use lg_profiles::{ButtonBinding, ProfileEdit};
 use lg_snapshot::ProfileContent;
@@ -26,17 +25,7 @@ use crate::edit_form::{self, ActionChoice};
 use crate::mouse_art::{self, ANCHORS, Fill, SHAPES, Segment, Stroke, VIEW_H, VIEW_W};
 use crate::present;
 
-actions!(
-    button_map,
-    [
-        CloseActions,
-        NextAction,
-        PreviousAction,
-        FirstAction,
-        LastAction,
-        ChooseAction
-    ]
-);
+actions!(button_map, [CloseActions, NextAction, PreviousAction, FirstAction, LastAction, ChooseAction]);
 
 /// Key context of the whole map.
 const MAP_CONTEXT: &str = "ButtonMap";
@@ -141,17 +130,10 @@ impl ButtonMap {
                     Some(key) => format!("{key} · {}", row.name),
                     None => row.name.clone(),
                 };
-                ButtonInfo {
-                    marker: marker.into(),
-                    caption: caption.into(),
-                    name: row.name.into(),
-                }
+                ButtonInfo { marker: marker.into(), caption: caption.into(), name: row.name.into() }
             })
             .collect();
-        let card_focus: Vec<FocusHandle> = buttons
-            .iter()
-            .map(|_| cx.focus_handle().tab_stop(true))
-            .collect();
+        let card_focus: Vec<FocusHandle> = buttons.iter().map(|_| cx.focus_handle().tab_stop(true)).collect();
         let list_focus = cx.focus_handle().tab_stop(true);
         // Focus decides how markers and the highlighted action are drawn.
         let mut subscriptions = Vec::new();
@@ -210,10 +192,7 @@ impl ButtonMap {
             .zip(&self.stored)
             .enumerate()
             .filter(|(_, (new, old))| new != old)
-            .map(|(index, (new, _))| ProfileEdit::SetButton {
-                index,
-                binding: *new,
-            })
+            .map(|(index, (new, _))| ProfileEdit::SetButton { index, binding: *new })
             .collect()
     }
 
@@ -224,9 +203,7 @@ impl ButtonMap {
 
     /// True when button `ix`'s card has keyboard focus.
     pub fn is_button_focused(&self, ix: usize, window: &Window) -> bool {
-        self.card_focus
-            .get(ix)
-            .is_some_and(|handle| handle.is_focused(window))
+        self.card_focus.get(ix).is_some_and(|handle| handle.is_focused(window))
     }
 
     /// True when the action list has keyboard focus.
@@ -255,11 +232,7 @@ impl ButtonMap {
         if ix < self.current.len() && ix < ANCHORS.len() {
             self.selected = Some(ix);
             let current = self.current[ix];
-            let at = self
-                .choices()
-                .iter()
-                .position(|c| c.binding == current)
-                .unwrap_or(0);
+            let at = self.choices().iter().position(|c| c.binding == current).unwrap_or(0);
             self.highlight(at, cx);
         }
     }
@@ -292,18 +265,12 @@ impl ButtonMap {
             return;
         };
         let rows = list_rows(*stored);
-        let count = rows
-            .iter()
-            .filter(|row| matches!(row, ListRow::Choice(..)))
-            .count();
+        let count = rows.iter().filter(|row| matches!(row, ListRow::Choice(..))).count();
         self.highlighted = at.min(count.saturating_sub(1));
         // The first action is shown together with its group title.
         let row = match self.highlighted {
             0 => 0,
-            at => rows
-                .iter()
-                .position(|row| matches!(row, ListRow::Choice(ix, _) if *ix == at))
-                .unwrap_or(0),
+            at => rows.iter().position(|row| matches!(row, ListRow::Choice(ix, _) if *ix == at)).unwrap_or(0),
         };
         self.list_scroll.scroll_to_item(row);
         cx.notify();
@@ -378,11 +345,7 @@ impl ButtonMap {
     // ---- rendering ----
 
     fn action_text(&self, ix: usize) -> SharedString {
-        self.current
-            .get(ix)
-            .map(|b| present::action_label(&b.label()))
-            .unwrap_or_default()
-            .into()
+        self.current.get(ix).map(|b| present::action_label(&b.label())).unwrap_or_default().into()
     }
 
     fn render_stage(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
@@ -399,26 +362,17 @@ impl ButtonMap {
             changed: theme.warning,
         };
         let selected = self.selected;
-        let changed: Vec<bool> = (0..self.current.len())
-            .map(|ix| self.is_changed(ix))
-            .collect();
+        let changed: Vec<bool> = (0..self.current.len()).map(|ix| self.is_changed(ix)).collect();
         let count = self.buttons.len().min(ANCHORS.len());
 
         let drawing = canvas(
             |_, _, _| {},
-            move |bounds, _, window, _| {
-                paint_mouse(bounds, &palette, selected, &changed, count, window)
-            },
+            move |bounds, _, window, _| paint_mouse(bounds, &palette, selected, &changed, count, window),
         )
         .absolute()
         .size_full();
 
-        let mut stage = div()
-            .relative()
-            .flex_none()
-            .w(units(VIEW_W))
-            .h(units(VIEW_H))
-            .child(drawing);
+        let mut stage = div().relative().flex_none().w(units(VIEW_W)).h(units(VIEW_H)).child(drawing);
 
         for (ix, (anchor, info)) in ANCHORS.iter().zip(&self.buttons).enumerate() {
             let is_selected = selected == Some(ix);
@@ -444,33 +398,19 @@ impl ButtonMap {
                     if is_selected {
                         this.border_color(theme.primary).bg(theme.list_active)
                     } else {
-                        this.border_color(theme.border)
-                            .bg(theme.popover)
-                            .hover(|s| s.bg(theme.list_hover))
+                        this.border_color(theme.border).bg(theme.popover).hover(|s| s.bg(theme.list_hover))
                     }
                 })
                 .child(
                     v_flex()
                         .flex_1()
                         .min_w_0()
+                        .child(div().text_sm().font_semibold().truncate().child(self.action_text(ix)))
                         .child(
-                            div()
-                                .text_sm()
-                                .font_semibold()
-                                .truncate()
-                                .child(self.action_text(ix)),
-                        )
-                        .child(
-                            div()
-                                .text_xs()
-                                .text_color(theme.muted_foreground)
-                                .truncate()
-                                .child(info.caption.clone()),
+                            div().text_xs().text_color(theme.muted_foreground).truncate().child(info.caption.clone()),
                         ),
                 )
-                .when(is_changed, |this| {
-                    this.child(div().flex_none().size_2().rounded_full().bg(theme.warning))
-                })
+                .when(is_changed, |this| this.child(div().flex_none().size_2().rounded_full().bg(theme.warning)))
                 .on_click(cx.listener(move |this, _, window, cx| this.open(ix, window, cx)));
 
             let marker = h_flex()
@@ -487,9 +427,7 @@ impl ButtonMap {
                 .font_bold()
                 .map(|this| {
                     if is_selected {
-                        this.bg(theme.primary)
-                            .border_color(theme.primary)
-                            .text_color(theme.primary_foreground)
+                        this.bg(theme.primary).border_color(theme.primary).text_color(theme.primary_foreground)
                     } else {
                         this.bg(theme.popover)
                             .border_color(if is_focused {
@@ -510,12 +448,7 @@ impl ButtonMap {
         stage
     }
 
-    fn render_inspector(
-        &self,
-        ix: usize,
-        window: &Window,
-        cx: &mut Context<Self>,
-    ) -> impl IntoElement {
+    fn render_inspector(&self, ix: usize, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let info = &self.buttons[ix];
         let current = self.current[ix];
         let stored = self.stored[ix];
@@ -569,10 +502,7 @@ impl ButtonMap {
                                     .text_xs()
                                     .text_color(theme.muted_foreground)
                                     .truncate()
-                                    .child(SharedString::from(format!(
-                                        "Does: {}",
-                                        self.action_text(ix)
-                                    ))),
+                                    .child(SharedString::from(format!("Does: {}", self.action_text(ix)))),
                             ),
                     )
                     .child(
@@ -585,14 +515,7 @@ impl ButtonMap {
                     ),
             )
             .when_some(readonly, |this, reason| {
-                this.child(
-                    div()
-                        .px_4()
-                        .pb_2()
-                        .text_xs()
-                        .text_color(theme.muted_foreground)
-                        .child(reason),
-                )
+                this.child(div().px_4().pb_2().text_xs().text_color(theme.muted_foreground).child(reason))
             })
             .child(
                 v_flex()
@@ -616,22 +539,13 @@ impl ButtonMap {
             )
             .when(current != stored && !locked, |this| {
                 this.child(
-                    h_flex()
-                        .flex_none()
-                        .justify_end()
-                        .px_4()
-                        .py_2()
-                        .border_t_1()
-                        .border_color(theme.border)
-                        .child(
-                            Button::new("revert-button")
-                                .outline()
-                                .small()
-                                .label("Undo change")
-                                .on_click(
-                                    cx.listener(move |this, _, _, cx| this.assign(ix, stored, cx)),
-                                ),
-                        ),
+                    h_flex().flex_none().justify_end().px_4().py_2().border_t_1().border_color(theme.border).child(
+                        Button::new("revert-button")
+                            .outline()
+                            .small()
+                            .label("Undo change")
+                            .on_click(cx.listener(move |this, _, _, cx| this.assign(ix, stored, cx))),
+                    ),
                 )
             })
     }
@@ -671,11 +585,7 @@ impl ButtonMap {
             .gap_2()
             .rounded(theme.radius)
             .border_1()
-            .border_color(if on_keyboard {
-                theme.ring
-            } else {
-                theme.ring.opacity(0.)
-            })
+            .border_color(if on_keyboard { theme.ring } else { theme.ring.opacity(0.) })
             .text_sm()
             .map(|this| {
                 if is_current {
@@ -688,16 +598,8 @@ impl ButtonMap {
                         .hover(|s| s.bg(theme.list_hover))
                 }
             })
-            .child(
-                div()
-                    .flex_1()
-                    .min_w_0()
-                    .truncate()
-                    .child(SharedString::from(choice.label)),
-            )
-            .when(is_current, |this| {
-                this.child(Icon::new(IconName::Check).small().text_color(theme.primary))
-            })
+            .child(div().flex_1().min_w_0().truncate().child(SharedString::from(choice.label)))
+            .when(is_current, |this| this.child(Icon::new(IconName::Check).small().text_color(theme.primary)))
             .when(!locked, |this| {
                 this.on_click(cx.listener(move |this, _, _, cx| {
                     this.highlighted = at;
@@ -711,9 +613,7 @@ impl ButtonMap {
 impl Render for ButtonMap {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let stage = self.render_stage(window, cx).into_any_element();
-        let inspector = self
-            .selected
-            .map(|ix| self.render_inspector(ix, window, cx).into_any_element());
+        let inspector = self.selected.map(|ix| self.render_inspector(ix, window, cx).into_any_element());
         let theme = cx.theme();
         let changes = self.pending_edits().len();
         let hint: SharedString = match (&self.readonly, self.selected) {
@@ -738,23 +638,15 @@ impl Render for ButtonMap {
                     .border_b_1()
                     .border_color(theme.border)
                     .child(div().text_sm().font_semibold().child("Buttons"))
-                    .child(
-                        div()
-                            .flex_1()
-                            .min_w_0()
-                            .truncate()
-                            .text_sm()
-                            .text_color(theme.muted_foreground)
-                            .child(hint),
-                    )
+                    .child(div().flex_1().min_w_0().truncate().text_sm().text_color(theme.muted_foreground).child(hint))
                     .when(changes > 0, |this| {
                         this.child(
-                            h_flex()
-                                .gap_2()
-                                .child(div().size_2().rounded_full().bg(theme.warning))
-                                .child(div().text_sm().text_color(theme.warning).child(
-                                    SharedString::from(edit_form::change_count_label(changes)),
-                                )),
+                            h_flex().gap_2().child(div().size_2().rounded_full().bg(theme.warning)).child(
+                                div()
+                                    .text_sm()
+                                    .text_color(theme.warning)
+                                    .child(SharedString::from(edit_form::change_count_label(changes))),
+                            ),
                         )
                         .child(
                             Button::new("discard-buttons")
@@ -822,20 +714,13 @@ fn paint_mouse(
     window: &mut Window,
 ) {
     let scale = bounds.size.width / px(VIEW_W);
-    let at = |x: f32, y: f32| {
-        point(
-            bounds.origin.x + px(x * scale),
-            bounds.origin.y + px(y * scale),
-        )
-    };
+    let at = |x: f32, y: f32| point(bounds.origin.x + px(x * scale), bounds.origin.y + px(y * scale));
     let build = |segments: &[Segment], mut builder: PathBuilder| {
         for segment in segments {
             match *segment {
                 Segment::Move(x, y) => builder.move_to(at(x, y)),
                 Segment::Line(x, y) => builder.line_to(at(x, y)),
-                Segment::Cubic(ax, ay, bx, by, x, y) => {
-                    builder.cubic_bezier_to(at(x, y), at(ax, ay), at(bx, by))
-                }
+                Segment::Cubic(ax, ay, bx, by, x, y) => builder.cubic_bezier_to(at(x, y), at(ax, ay), at(bx, by)),
                 Segment::Close => builder.close(),
             }
         }
@@ -847,20 +732,14 @@ fn paint_mouse(
             continue;
         };
         let is_selected = shape.button.is_some() && shape.button == selected;
-        let is_changed = shape
-            .button
-            .is_some_and(|ix| changed.get(ix).copied().unwrap_or(false));
+        let is_changed = shape.button.is_some_and(|ix| changed.get(ix).copied().unwrap_or(false));
 
         let fill = match shape.fill {
             Fill::None => None,
             Fill::Body => Some(palette.body),
             Fill::Shell => Some(palette.shell),
             Fill::Recess => Some(palette.recess),
-            Fill::Key => Some(if is_selected {
-                palette.selected_fill
-            } else {
-                palette.key
-            }),
+            Fill::Key => Some(if is_selected { palette.selected_fill } else { palette.key }),
         };
         if let Some(color) = fill
             && let Some(path) = build(&segments, PathBuilder::fill())
@@ -891,16 +770,9 @@ fn paint_mouse(
         let (dx, dy) = (anchor.marker.0 - x0, anchor.marker.1 - y0);
         let length = (dx * dx + dy * dy).sqrt().max(1.);
         let reach = (length - mouse_art::MARKER / 2.) / length;
-        let segments = [
-            Segment::Move(x0, y0),
-            Segment::Line(x0 + dx * reach, y0 + dy * reach),
-        ];
+        let segments = [Segment::Move(x0, y0), Segment::Line(x0 + dx * reach, y0 + dy * reach)];
         let is_selected = selected == Some(ix);
-        let (color, width) = if is_selected {
-            (palette.accent, 2.)
-        } else {
-            (palette.outline, 1.)
-        };
+        let (color, width) = if is_selected { (palette.accent, 2.) } else { (palette.outline, 1.) };
         if let Some(path) = build(&segments, PathBuilder::stroke(px(width * scale))) {
             window.paint_path(path, color);
         }

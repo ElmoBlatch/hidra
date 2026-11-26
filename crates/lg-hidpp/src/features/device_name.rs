@@ -12,7 +12,5 @@ pub fn name<T: Transport>(dev: &mut Device<T>) -> Result<String> {
         let take = (len - bytes.len()).min(16);
         bytes.extend_from_slice(&r[..take]);
     }
-    Ok(String::from_utf8_lossy(&bytes)
-        .trim_end_matches('\0')
-        .to_string())
+    Ok(String::from_utf8_lossy(&bytes).trim_end_matches('\0').to_string())
 }

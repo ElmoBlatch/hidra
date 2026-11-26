@@ -48,21 +48,14 @@ impl FirmwareInfo {
 
     /// Logitech's usual rendering, e.g. `U1 12.03.B0011`.
     pub fn version_string(&self) -> String {
-        format!(
-            "{} {:02x}.{:02x}.B{:04x}",
-            self.prefix, self.number, self.revision, self.build
-        )
+        format!("{} {:02x}.{:02x}.B{:04x}", self.prefix, self.number, self.revision, self.build)
     }
 }
 
 pub fn firmware_info<T: Transport>(dev: &mut Device<T>, entity: u8) -> Result<FirmwareInfo> {
     let idx = dev.require(PAGE)?;
     let r = dev.call(idx, 1, &[entity, 0, 0])?;
-    let prefix: String = r[1..4]
-        .iter()
-        .filter(|b| b.is_ascii_graphic())
-        .map(|&b| b as char)
-        .collect();
+    let prefix: String = r[1..4].iter().filter(|b| b.is_ascii_graphic()).map(|&b| b as char).collect();
     Ok(FirmwareInfo {
         entity,
         kind: r[0] & 0x0f,

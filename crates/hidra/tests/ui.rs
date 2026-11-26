@@ -3,21 +3,16 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
-use gpui_kit::test::{
-    TestAppContextExt as _, TestEventExt as _, TestQueryExt as _, TestWindowExt as _,
-};
+use gpui_kit::test::{TestAppContextExt as _, TestEventExt as _, TestQueryExt as _, TestWindowExt as _};
 use gpui_kit::{
-    AnyWindowHandle, AppContext as _, Bounds, Entity, MouseButton, TestAppContext, WindowBounds,
-    WindowOptions, px, size,
+    AnyWindowHandle, AppContext as _, Bounds, Entity, MouseButton, TestAppContext, WindowBounds, WindowOptions, px,
+    size,
 };
 use hidra::state::{DeviceRead, Discovery};
 use hidra::{MiceWindow, Source};
 
 fn capture(name: &str) -> PathBuf {
-    PathBuf::from(format!(
-        "{}/../../captures/ratbagd/{name}",
-        env!("CARGO_MANIFEST_DIR")
-    ))
+    PathBuf::from(format!("{}/../../captures/ratbagd/{name}", env!("CARGO_MANIFEST_DIR")))
 }
 
 fn open(cx: &mut TestAppContext, source: Source) -> (AnyWindowHandle, Entity<MiceWindow>) {
@@ -47,16 +42,10 @@ async fn settle(cx: &mut TestAppContext, handle: AnyWindowHandle, view: &Entity<
         if !cx.update(|cx| view.read(cx).is_busy()) {
             break;
         }
-        cx.background_executor
-            .timer(Duration::from_millis(10))
-            .await;
+        cx.background_executor.timer(Duration::from_millis(10)).await;
     }
-    assert!(
-        !cx.update(|cx| view.read(cx).is_busy()),
-        "reads did not finish"
-    );
-    cx.wait_for(handle, Duration::from_secs(1), |_, _| true)
-        .await;
+    assert!(!cx.update(|cx| view.read(cx).is_busy()), "reads did not finish");
+    cx.wait_for(handle, Duration::from_secs(1), |_, _| true).await;
 }
 
 #[gpui_kit::test]
@@ -72,10 +61,7 @@ async fn proteus_replay_shows_profiles_and_switches_tabs(cx: &mut TestAppContext
         let v = view.read(cx);
         assert_eq!(v.discovery(), &Discovery::Ready);
         assert_eq!(v.devices().len(), 1);
-        let id = v
-            .selected_device()
-            .expect("first device selected")
-            .to_string();
+        let id = v.selected_device().expect("first device selected").to_string();
         assert!(matches!(v.device_read(&id), Some(DeviceRead::Ready(_))));
         // The active profile (sector 1) is shown first.
         assert_eq!(v.shown_profile(), Some(0x0001));
@@ -97,18 +83,15 @@ async fn proteus_replay_shows_profiles_and_switches_tabs(cx: &mut TestAppContext
     cx.update(|cx| assert_eq!(view.read(cx).shown_profile(), Some(0x0003)));
 
     // Keyboard: Ctrl+Shift+Tab steps back to profile 2.
-    cx.update_window(handle, |_, window, cx| window.press("ctrl-shift-tab", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("ctrl-shift-tab", cx)).unwrap();
     cx.run_until_parked();
     cx.update(|cx| assert_eq!(view.read(cx).shown_profile(), Some(0x0002)));
 }
 
 #[gpui_kit::test]
 async fn lightspeed_replay_selects_factory_profile(cx: &mut TestAppContext) {
-    let source = Source::Replay {
-        log: capture("both-mice-lightspeed-407f.log"),
-        segment: Some("Logitech G502".into()),
-    };
+    let source =
+        Source::Replay { log: capture("both-mice-lightspeed-407f.log"), segment: Some("Logitech G502".into()) };
     let (handle, view) = open(cx, source);
     settle(cx, handle, &view).await;
     cx.update(|cx| assert_eq!(view.read(cx).shown_profile(), Some(0x0101)));
@@ -129,19 +112,9 @@ async fn device_info_sheet_opens_from_the_keyboard_and_escape_closes_it(cx: &mut
     let (handle, view) = open(cx, source);
     settle(cx, handle, &view).await;
 
-    let facts = cx
-        .update(|cx| view.read(cx).device_info_facts())
-        .expect("facts once the device is read");
-    assert!(
-        facts
-            .iter()
-            .any(|f| f.label == "HID++ protocol" && f.value == "4.2")
-    );
-    assert!(
-        facts
-            .iter()
-            .any(|f| f.label == "Profile 1" && f.value == "Sector 0x0001, CRC 1c32 OK")
-    );
+    let facts = cx.update(|cx| view.read(cx).device_info_facts()).expect("facts once the device is read");
+    assert!(facts.iter().any(|f| f.label == "HID++ protocol" && f.value == "4.2"));
+    assert!(facts.iter().any(|f| f.label == "Profile 1" && f.value == "Sector 0x0001, CRC 1c32 OK"));
 
     cx.update_window(handle, |_, window, cx| {
         window.render_frame(cx);
@@ -152,10 +125,7 @@ async fn device_info_sheet_opens_from_the_keyboard_and_escape_closes_it(cx: &mut
     cx.run_until_parked();
     cx.update_window(handle, |_, window, cx| {
         window.render_frame(cx);
-        assert!(
-            window.has_active_sheet(cx),
-            "Ctrl+I opens the device info sheet"
-        );
+        assert!(window.has_active_sheet(cx), "Ctrl+I opens the device info sheet");
         window.press("escape", cx);
     })
     .unwrap();
@@ -180,8 +150,7 @@ async fn theme_starts_dark_and_toggles(cx: &mut TestAppContext) {
         assert!(cx.theme().is_dark(), "Graphite Dark is the default");
         assert_eq!(cx.theme().theme_name().as_ref(), "Graphite Dark");
     });
-    cx.update_window(handle, |_, window, cx| window.press("ctrl-shift-l", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("ctrl-shift-l", cx)).unwrap();
     cx.run_until_parked();
     cx.update(|cx| {
         assert!(!cx.theme().is_dark());
@@ -191,10 +160,7 @@ async fn theme_starts_dark_and_toggles(cx: &mut TestAppContext) {
 
 #[gpui_kit::test]
 async fn missing_capture_shows_discovery_error(cx: &mut TestAppContext) {
-    let source = Source::Replay {
-        log: capture("does-not-exist.log"),
-        segment: None,
-    };
+    let source = Source::Replay { log: capture("does-not-exist.log"), segment: None };
     let (handle, view) = open(cx, source);
     settle(cx, handle, &view).await;
     cx.update(|cx| {
@@ -206,19 +172,10 @@ async fn missing_capture_shows_discovery_error(cx: &mut TestAppContext) {
 #[gpui_kit::test]
 async fn sidebar_click_and_keyboard_switch_devices(cx: &mut TestAppContext) {
     // Without a segment name, every device in the capture is listed.
-    let source = Source::Replay {
-        log: capture("both-mice-lightspeed-407f.log"),
-        segment: None,
-    };
+    let source = Source::Replay { log: capture("both-mice-lightspeed-407f.log"), segment: None };
     let (handle, view) = open(cx, source);
     settle(cx, handle, &view).await;
-    let ids: Vec<String> = cx.update(|cx| {
-        view.read(cx)
-            .devices()
-            .iter()
-            .map(|d| d.id.clone())
-            .collect()
-    });
+    let ids: Vec<String> = cx.update(|cx| view.read(cx).devices().iter().map(|d| d.id.clone()).collect());
     assert!(ids.len() >= 2, "capture holds both mice: {ids:?}");
     cx.update(|cx| assert_eq!(view.read(cx).selected_device(), Some(ids[0].as_str())));
 
@@ -231,18 +188,14 @@ async fn sidebar_click_and_keyboard_switch_devices(cx: &mut TestAppContext) {
     cx.run_until_parked();
     cx.update(|cx| assert_eq!(view.read(cx).selected_device(), Some(ids[1].as_str())));
 
-    cx.update_window(handle, |_, window, cx| window.press("alt-up", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("alt-up", cx)).unwrap();
     cx.run_until_parked();
     cx.update(|cx| assert_eq!(view.read(cx).selected_device(), Some(ids[0].as_str())));
 
     // Every device was read (none failed) from the capture.
     cx.update(|cx| {
         for id in &ids {
-            assert!(
-                matches!(view.read(cx).device_read(id), Some(DeviceRead::Ready(_))),
-                "{id}"
-            );
+            assert!(matches!(view.read(cx).device_read(id), Some(DeviceRead::Ready(_))), "{id}");
         }
     });
 }
@@ -255,12 +208,8 @@ async fn editing_a_profile_saves_to_the_simulated_mouse(cx: &mut TestAppContext)
     use lg_snapshot::DeviceSource;
 
     let source = Source::demo().unwrap();
-    let Source::Fixed(entries) = &source else {
-        unreachable!()
-    };
-    let DeviceSource::Sim(memory) = entries[0].source.clone() else {
-        unreachable!()
-    };
+    let Source::Fixed(entries) = &source else { unreachable!() };
+    let DeviceSource::Sim(memory) = entries[0].source.clone() else { unreachable!() };
     let backups = std::env::temp_dir().join(format!("hidra-ui-test-{}", std::process::id()));
     let (handle, view) = open(cx, source);
     cx.update(|cx| view.update(cx, |v, _| v.set_backup_dir(backups.clone())));
@@ -273,18 +222,9 @@ async fn editing_a_profile_saves_to_the_simulated_mouse(cx: &mut TestAppContext)
     })
     .unwrap();
     cx.run_until_parked();
-    let editor = cx
-        .update(|cx| view.read(cx).editor().cloned())
-        .expect("Ctrl+E opens the editor");
-    cx.update_window(handle, |_, window, cx| assert!(window.has_active_sheet(cx)))
-        .unwrap();
-    cx.update(|cx| {
-        assert_eq!(
-            editor.read(cx).pending_edits(cx),
-            Ok(vec![]),
-            "nothing changed yet"
-        )
-    });
+    let editor = cx.update(|cx| view.read(cx).editor().cloned()).expect("Ctrl+E opens the editor");
+    cx.update_window(handle, |_, window, cx| assert!(window.has_active_sheet(cx))).unwrap();
+    cx.update(|cx| assert_eq!(editor.read(cx).pending_edits(cx), Ok(vec![]), "nothing changed yet"));
 
     // An off-step value is reported and nothing is written.
     cx.update_window(handle, |_, window, cx| {
@@ -296,12 +236,7 @@ async fn editing_a_profile_saves_to_the_simulated_mouse(cx: &mut TestAppContext)
     .unwrap();
     cx.run_until_parked();
     cx.update(|cx| {
-        assert!(
-            editor
-                .read(cx)
-                .error()
-                .is_some_and(|m| m.contains("multiple of 50"))
-        );
+        assert!(editor.read(cx).error().is_some_and(|m| m.contains("multiple of 50")));
         assert!(!editor.read(cx).is_saving());
     });
     assert_eq!(memory.lock().unwrap().begin_writes, 0);
@@ -318,28 +253,15 @@ async fn editing_a_profile_saves_to_the_simulated_mouse(cx: &mut TestAppContext)
     settle(cx, handle, &view).await;
     cx.update_window(handle, |_, window, cx| {
         window.render_frame(cx);
-        assert!(
-            !window.has_active_sheet(cx),
-            "the editor closes after a successful save"
-        );
+        assert!(!window.has_active_sheet(cx), "the editor closes after a successful save");
     })
     .unwrap();
     cx.update(|cx| {
         let v = view.read(cx);
         assert!(v.editor().is_none());
         let id = v.selected_device().unwrap().to_string();
-        let Some(DeviceRead::Ready(s)) = v.device_read(&id) else {
-            panic!("device is shown as read")
-        };
-        let set = s
-            .onboard
-            .as_ref()
-            .unwrap()
-            .as_ref()
-            .unwrap()
-            .profiles
-            .as_ref()
-            .unwrap();
+        let Some(DeviceRead::Ready(s)) = v.device_read(&id) else { panic!("device is shown as read") };
+        let set = s.onboard.as_ref().unwrap().as_ref().unwrap().profiles.as_ref().unwrap();
         let c = set.profiles[0].content.as_ref().unwrap();
         assert_eq!(c.dpi_stages, [3200, 5150, 8500, 12000, 0]);
         assert_eq!(c.default_stage, 2);
@@ -361,8 +283,7 @@ async fn replayed_captures_offer_no_editing(cx: &mut TestAppContext) {
     let (handle, view) = open(cx, source);
     settle(cx, handle, &view).await;
     cx.update(|cx| assert!(!view.read(cx).can_edit_shown_profile()));
-    cx.update_window(handle, |_, window, cx| window.press("ctrl-e", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("ctrl-e", cx)).unwrap();
     cx.run_until_parked();
     cx.update(|cx| assert!(view.read(cx).editor().is_none()));
 }
@@ -375,22 +296,15 @@ async fn button_map_assigns_an_action_and_saves_it(cx: &mut TestAppContext) {
     use lg_snapshot::DeviceSource;
 
     let source = Source::demo().unwrap();
-    let Source::Fixed(entries) = &source else {
-        unreachable!()
-    };
-    let DeviceSource::Sim(memory) = entries[0].source.clone() else {
-        unreachable!()
-    };
+    let Source::Fixed(entries) = &source else { unreachable!() };
+    let DeviceSource::Sim(memory) = entries[0].source.clone() else { unreachable!() };
     let backups = std::env::temp_dir().join(format!("hidra-map-test-{}", std::process::id()));
     let (handle, view) = open(cx, source);
     cx.update(|cx| view.update(cx, |v, _| v.set_backup_dir(backups.clone())));
     settle(cx, handle, &view).await;
-    cx.update_window(handle, |_, window, cx| window.render_frame(cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
 
-    let map = cx
-        .update(|cx| view.read(cx).button_map().cloned())
-        .expect("an editable G502 profile has a button map");
+    let map = cx.update(|cx| view.read(cx).button_map().cloned()).expect("an editable G502 profile has a button map");
     let f13 = ButtonBinding::parse("key:F13").unwrap();
     cx.update(|cx| {
         let m = map.read(cx);
@@ -407,19 +321,12 @@ async fn button_map_assigns_an_action_and_saves_it(cx: &mut TestAppContext) {
             m.assign(6, f13, cx);
         })
     });
-    cx.update_window(handle, |_, window, cx| window.render_frame(cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
     cx.update(|cx| {
         let m = map.read(cx);
         assert_eq!(m.selected(), Some(6));
         assert!(m.is_changed(6) && !m.is_changed(5));
-        assert_eq!(
-            m.pending_edits(),
-            vec![ProfileEdit::SetButton {
-                index: 6,
-                binding: f13
-            }]
-        );
+        assert_eq!(m.pending_edits(), vec![ProfileEdit::SetButton { index: 6, binding: f13 }]);
     });
     assert_eq!(memory.lock().unwrap().begin_writes, 0);
 
@@ -433,28 +340,14 @@ async fn button_map_assigns_an_action_and_saves_it(cx: &mut TestAppContext) {
         })
     });
     settle(cx, handle, &view).await;
-    cx.update_window(handle, |_, window, cx| window.render_frame(cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
 
     cx.update(|cx| {
         let v = view.read(cx);
         let id = v.selected_device().unwrap().to_string();
-        let Some(DeviceRead::Ready(s)) = v.device_read(&id) else {
-            panic!("device is shown as read")
-        };
-        let set = s
-            .onboard
-            .as_ref()
-            .unwrap()
-            .as_ref()
-            .unwrap()
-            .profiles
-            .as_ref()
-            .unwrap();
-        assert_eq!(
-            set.profiles[0].content.as_ref().unwrap().buttons[6],
-            "key F13"
-        );
+        let Some(DeviceRead::Ready(s)) = v.device_read(&id) else { panic!("device is shown as read") };
+        let set = s.onboard.as_ref().unwrap().as_ref().unwrap().profiles.as_ref().unwrap();
+        assert_eq!(set.profiles[0].content.as_ref().unwrap().buttons[6], "key F13");
         // The re-read device gets a fresh map with nothing pending.
         let fresh = v.button_map().expect("the map follows the new read");
         assert_ne!(fresh.entity_id(), map.entity_id());
@@ -470,18 +363,12 @@ async fn button_map_assigns_an_action_and_saves_it(cx: &mut TestAppContext) {
 async fn button_map_is_readonly_for_replayed_captures(cx: &mut TestAppContext) {
     use lg_profiles::ButtonBinding;
 
-    let source = Source::Replay {
-        log: capture("g502-proteus-spectrum-c332.log"),
-        segment: None,
-    };
+    let source = Source::Replay { log: capture("g502-proteus-spectrum-c332.log"), segment: None };
     let (handle, view) = open(cx, source);
     settle(cx, handle, &view).await;
-    cx.update_window(handle, |_, window, cx| window.render_frame(cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
 
-    let map = cx
-        .update(|cx| view.read(cx).button_map().cloned())
-        .expect("the capture's profile has a button map");
+    let map = cx.update(|cx| view.read(cx).button_map().cloned()).expect("the capture's profile has a button map");
     cx.update(|cx| {
         map.update(cx, |m, cx| {
             assert!(m.is_readonly());
@@ -493,8 +380,7 @@ async fn button_map_is_readonly_for_replayed_captures(cx: &mut TestAppContext) {
             assert!(m.pending_edits().is_empty() && !m.is_saving());
         })
     });
-    cx.update_window(handle, |_, window, cx| window.render_frame(cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
 }
 
 /// The map works without a pointer: open a button's list, move with the arrow
@@ -503,37 +389,25 @@ async fn button_map_is_readonly_for_replayed_captures(cx: &mut TestAppContext) {
 async fn button_map_is_operable_from_the_keyboard(cx: &mut TestAppContext) {
     let (handle, view) = open(cx, Source::demo().unwrap());
     settle(cx, handle, &view).await;
-    cx.update_window(handle, |_, window, cx| window.render_frame(cx))
-        .unwrap();
-    let map = cx
-        .update(|cx| view.read(cx).button_map().cloned())
-        .expect("an editable G502 profile has a button map");
+    cx.update_window(handle, |_, window, cx| window.render_frame(cx)).unwrap();
+    let map = cx.update(|cx| view.read(cx).button_map().cloned()).expect("an editable G502 profile has a button map");
 
     cx.update_window(handle, |_, window, cx| {
         map.update(cx, |m, cx| m.open(6, window, cx));
         window.render_frame(cx);
         let m = map.read(cx);
-        assert!(
-            m.is_action_list_focused(window),
-            "opening a button moves focus to its action list"
-        );
-        assert_eq!(
-            m.highlighted_action(),
-            m.binding(6),
-            "the list starts on the current action"
-        );
+        assert!(m.is_action_list_focused(window), "opening a button moves focus to its action list");
+        assert_eq!(m.highlighted_action(), m.binding(6), "the list starts on the current action");
     })
     .unwrap();
 
     // Down moves to the next action; Enter assigns it as an unsaved change.
     let before = cx.update(|cx| map.read(cx).binding(6));
-    cx.update_window(handle, |_, window, cx| window.press("down", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("down", cx)).unwrap();
     let next = cx.update(|cx| map.read(cx).highlighted_action());
     assert_ne!(next, before);
     cx.update(|cx| assert!(!map.read(cx).is_changed(6), "moving alone changes nothing"));
-    cx.update_window(handle, |_, window, cx| window.press("enter", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("enter", cx)).unwrap();
     cx.update(|cx| {
         let m = map.read(cx);
         assert_eq!(m.binding(6), next);
@@ -541,20 +415,11 @@ async fn button_map_is_operable_from_the_keyboard(cx: &mut TestAppContext) {
     });
 
     // Home and End reach the ends of the list.
-    cx.update_window(handle, |_, window, cx| window.press("end", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("end", cx)).unwrap();
     let last = cx.update(|cx| map.read(cx).highlighted_action());
-    cx.update_window(handle, |_, window, cx| window.press("down", cx))
-        .unwrap();
-    cx.update(|cx| {
-        assert_eq!(
-            map.read(cx).highlighted_action(),
-            last,
-            "Down stops at the last action"
-        )
-    });
-    cx.update_window(handle, |_, window, cx| window.press("home", cx))
-        .unwrap();
+    cx.update_window(handle, |_, window, cx| window.press("down", cx)).unwrap();
+    cx.update(|cx| assert_eq!(map.read(cx).highlighted_action(), last, "Down stops at the last action"));
+    cx.update_window(handle, |_, window, cx| window.press("home", cx)).unwrap();
     cx.update(|cx| assert_ne!(map.read(cx).highlighted_action(), last));
 
     // Escape closes the list and puts focus back on the button's card, where
@@ -595,20 +460,12 @@ async fn edit_sheet_has_no_button_pickers_for_a_g502(cx: &mut TestAppContext) {
     })
     .unwrap();
     cx.run_until_parked();
-    let editor = cx
-        .update(|cx| view.read(cx).editor().cloned())
-        .expect("Ctrl+E opens the editor");
+    let editor = cx.update(|cx| view.read(cx).editor().cloned()).expect("Ctrl+E opens the editor");
     cx.update(|cx| {
         let e = editor.read(cx);
         assert_eq!(e.button_picker_count(), 0);
         let stored = view.read(cx).button_map().unwrap().read(cx);
-        let kept: Vec<_> = (0..e.form_values(cx).buttons.len())
-            .map(|ix| stored.binding(ix).unwrap())
-            .collect();
-        assert_eq!(
-            e.form_values(cx).buttons,
-            kept,
-            "the form keeps the stored assignments"
-        );
+        let kept: Vec<_> = (0..e.form_values(cx).buttons.len()).map(|ix| stored.binding(ix).unwrap()).collect();
+        assert_eq!(e.form_values(cx).buttons, kept, "the form keeps the stored assignments");
     });
 }

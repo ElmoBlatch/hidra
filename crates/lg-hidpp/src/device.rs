@@ -52,13 +52,7 @@ impl<T: Transport> Device<T> {
         if !transport.supports_short() && !transport.supports_long() {
             return Err(Error::NoHidppReports);
         }
-        let mut dev = Self {
-            transport,
-            device_index,
-            protocol: (0, 0),
-            features: Vec::new(),
-            timeout,
-        };
+        let mut dev = Self { transport, device_index, protocol: (0, 0), features: Vec::new(), timeout };
         // A sleeping wireless mouse can drop the first request while the
         // receiver wakes it, so retry the initial ping a few times.
         let mut attempt = 0;
@@ -75,12 +69,7 @@ impl<T: Transport> Device<T> {
                 other => break other?,
             }
         };
-        let mut features = vec![FeatureEntry {
-            index: 0,
-            page: root::PAGE,
-            flags: FeatureFlags(0),
-            version: 0,
-        }];
+        let mut features = vec![FeatureEntry { index: 0, page: root::PAGE, flags: FeatureFlags(0), version: 0 }];
         if let Some(fs_index) = root::feature_index(&mut dev, feature_set::PAGE)? {
             let count = feature_set::count(&mut dev, fs_index)?;
             for i in 1..=count {
@@ -109,9 +98,7 @@ impl<T: Transport> Device<T> {
     }
 
     pub(crate) fn require(&self, page: u16) -> Result<u8> {
-        self.feature(page)
-            .map(|f| f.index)
-            .ok_or(Error::FeatureMissing(page))
+        self.feature(page).map(|f| f.index).ok_or(Error::FeatureMissing(page))
     }
 
     pub(crate) fn timeout(&self) -> Duration {
@@ -130,29 +117,11 @@ impl<T: Transport> Device<T> {
     ///
     /// Crate-private on purpose: only typed, read-only feature getters may
     /// issue requests.
-    pub(crate) fn call(
-        &mut self,
-        feature_index: u8,
-        function: u8,
-        params: &[u8],
-    ) -> Result<Vec<u8>> {
-        let req = Request {
-            device_index: self.device_index,
-            feature_index,
-            function,
-            params: params.to_vec(),
-        };
+    pub(crate) fn call(&mut self, feature_index: u8, function: u8, params: &[u8]) -> Result<Vec<u8>> {
+        let req = Request { device_index: self.device_index, feature_index, function, params: params.to_vec() };
         let bytes = req
-            .encode(
-                self.transport.supports_short(),
-                self.transport.supports_long(),
-            )
-            .ok_or_else(|| {
-                Error::Malformed(format!(
-                    "{} params do not fit any supported report",
-                    params.len()
-                ))
-            })?;
+            .encode(self.transport.supports_short(), self.transport.supports_long())
+            .ok_or_else(|| Error::Malformed(format!("{} params do not fit any supported report", params.len())))?;
         self.transport.write_report(&bytes)?;
 
         let func_swid = (function << 4) | SOFTWARE_ID;
@@ -160,57 +129,30 @@ impl<T: Transport> Device<T> {
         loop {
             let remaining = deadline.saturating_duration_since(Instant::now());
             let Some(buf) = self.transport.read_report(remaining)? else {
-                return Err(Error::Timeout {
-                    feature_index,
-                    function,
-                });
+                return Err(Error::Timeout { feature_index, function });
             };
-            let index_ok = |idx: u8| {
-                idx == self.device_index || self.device_index == crate::DEVICE_INDEX_DIRECT
-            };
+            let index_ok = |idx: u8| idx == self.device_index || self.device_index == crate::DEVICE_INDEX_DIRECT;
             match Incoming::parse(&buf) {
-                Incoming::Message {
-                    device_index,
-                    feature_index: fi,
-                    function: f,
-                    software_id,
-                    payload,
-                } if index_ok(device_index)
-                    && fi == feature_index
-                    && f == function
-                    && software_id == SOFTWARE_ID =>
+                Incoming::Message { device_index, feature_index: fi, function: f, software_id, payload }
+                    if index_ok(device_index) && fi == feature_index && f == function && software_id == SOFTWARE_ID =>
                 {
                     let mut payload = payload;
                     payload.resize(16, 0);
                     return Ok(payload);
                 }
-                Incoming::Error20 {
-                    device_index,
-                    feature_index: fi,
-                    function: f,
-                    software_id,
-                    code,
-                } if index_ok(device_index)
-                    && fi == feature_index
-                    && f == function
-                    && software_id == SOFTWARE_ID =>
+                Incoming::Error20 { device_index, feature_index: fi, function: f, software_id, code }
+                    if index_ok(device_index) && fi == feature_index && f == function && software_id == SOFTWARE_ID =>
                 {
                     return Err(Error::Hidpp20(Hidpp20Error(code)));
                 }
-                Incoming::Error10 {
-                    device_index,
-                    sub_id,
-                    address,
-                    code,
-                } if index_ok(device_index) && sub_id == feature_index && address == func_swid => {
+                Incoming::Error10 { device_index, sub_id, address, code }
+                    if index_ok(device_index) && sub_id == feature_index && address == func_swid =>
+                {
                     return Err(Error::Hidpp10(Hidpp10Error(code)));
                 }
                 _ => {
                     if Instant::now() >= deadline {
-                        return Err(Error::Timeout {
-                            feature_index,
-                            function,
-                        });
+                        return Err(Error::Timeout { feature_index, function });
                     }
                 }
             }

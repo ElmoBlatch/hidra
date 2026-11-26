@@ -34,14 +34,8 @@ impl HidrawTransport {
             .write(true)
             .custom_flags(libc::O_NONBLOCK)
             .open(&path)?;
-        let (short, long) =
-            crate::discovery::hidpp_report_support_for_dev(&path).unwrap_or((true, true));
-        Ok(Self {
-            file,
-            path,
-            short,
-            long,
-        })
+        let (short, long) = crate::discovery::hidpp_report_support_for_dev(&path).unwrap_or((true, true));
+        Ok(Self { file, path, short, long })
     }
 
     pub fn path(&self) -> &Path {
@@ -53,10 +47,7 @@ impl Transport for HidrawTransport {
     fn write_report(&mut self, report: &[u8]) -> io::Result<()> {
         let n = self.file.write(report)?;
         if n != report.len() {
-            return Err(io::Error::new(
-                io::ErrorKind::WriteZero,
-                "short hidraw write",
-            ));
+            return Err(io::Error::new(io::ErrorKind::WriteZero, "short hidraw write"));
         }
         Ok(())
     }
@@ -65,11 +56,7 @@ impl Transport for HidrawTransport {
         let deadline = Instant::now() + timeout;
         loop {
             let remaining = deadline.saturating_duration_since(Instant::now());
-            let mut pfd = libc::pollfd {
-                fd: self.file.as_raw_fd(),
-                events: libc::POLLIN,
-                revents: 0,
-            };
+            let mut pfd = libc::pollfd { fd: self.file.as_raw_fd(), events: libc::POLLIN, revents: 0 };
             let ms = remaining.as_millis().min(i32::MAX as u128) as i32;
             // SAFETY: pfd is a valid pollfd for the lifetime of the call.
             let rc = unsafe { libc::poll(&mut pfd, 1, ms) };
@@ -84,10 +71,7 @@ impl Transport for HidrawTransport {
                 return Ok(None);
             }
             if pfd.revents & (libc::POLLERR | libc::POLLHUP | libc::POLLNVAL) != 0 {
-                return Err(io::Error::new(
-                    io::ErrorKind::BrokenPipe,
-                    "hidraw device went away",
-                ));
+                return Err(io::Error::new(io::ErrorKind::BrokenPipe, "hidraw device went away"));
             }
             let mut buf = [0u8; 64];
             match self.file.read(&mut buf) {

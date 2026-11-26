@@ -39,10 +39,7 @@ fn standard_actions() -> Vec<ActionChoice> {
         .iter()
         .map(|t| {
             let binding = ButtonBinding::parse(t).expect("standard action parses");
-            ActionChoice {
-                label: present::action_label(&binding.label()),
-                binding,
-            }
+            ActionChoice { label: present::action_label(&binding.label()), binding }
         })
         .collect()
 }
@@ -55,13 +52,7 @@ pub fn action_choices(current: ButtonBinding) -> (Vec<ActionChoice>, usize) {
     match choices.iter().position(|c| c.binding == current) {
         Some(ix) => (choices, ix),
         None => {
-            choices.insert(
-                0,
-                ActionChoice {
-                    label: present::action_label(&current.label()),
-                    binding: current,
-                },
-            );
+            choices.insert(0, ActionChoice { label: present::action_label(&current.label()), binding: current });
             (choices, 0)
         }
     }
@@ -84,53 +75,24 @@ pub fn action_groups(current: ButtonBinding) -> Vec<ActionGroup> {
             .iter()
             .map(|t| {
                 let binding = ButtonBinding::parse(t).expect("standard action parses");
-                ActionChoice {
-                    label: present::action_label(&binding.label()),
-                    binding,
-                }
+                ActionChoice { label: present::action_label(&binding.label()), binding }
             })
             .collect(),
     };
     let texts = |list: &[&str]| list.iter().map(|t| t.to_string()).collect::<Vec<_>>();
     let mut groups = vec![
-        group(
-            "Mouse",
-            texts(&[
-                "left",
-                "right",
-                "middle",
-                "back",
-                "forward",
-                "tilt-left",
-                "tilt-right",
-            ]),
-        ),
-        group(
-            "DPI",
-            texts(&[
-                "dpi-up",
-                "dpi-down",
-                "dpi-cycle",
-                "dpi-shift",
-                "dpi-default",
-            ]),
-        ),
+        group("Mouse", texts(&["left", "right", "middle", "back", "forward", "tilt-left", "tilt-right"])),
+        group("DPI", texts(&["dpi-up", "dpi-down", "dpi-cycle", "dpi-shift", "dpi-default"])),
         group("Profile", texts(&["profile-cycle"])),
         group("Keys", (13..=24).map(|n| format!("key:F{n}")).collect()),
         group("Other", texts(&["disabled"])),
     ];
-    if !groups
-        .iter()
-        .any(|g| g.choices.iter().any(|c| c.binding == current))
-    {
+    if !groups.iter().any(|g| g.choices.iter().any(|c| c.binding == current)) {
         groups.insert(
             0,
             ActionGroup {
                 title: "Current",
-                choices: vec![ActionChoice {
-                    label: present::action_label(&current.label()),
-                    binding: current,
-                }],
+                choices: vec![ActionChoice { label: present::action_label(&current.label()), binding: current }],
             },
         );
     }
@@ -152,9 +114,7 @@ impl FormValues {
     /// The form as it looks before any change.
     pub fn from_profile(c: &ProfileContent) -> Self {
         Self {
-            dpi: c
-                .dpi_stages
-                .map(|d| if d == 0 { String::new() } else { d.to_string() }),
+            dpi: c.dpi_stages.map(|d| if d == 0 { String::new() } else { d.to_string() }),
             default_stage: c.default_stage as usize,
             polling_hz: c.report_rate_hz,
             buttons: c.bindings.clone(),
@@ -164,11 +124,7 @@ impl FormValues {
 
 /// Turn the form into the edits that differ from `original`, or a message
 /// naming the first invalid value.
-pub fn form_edits(
-    original: &ProfileContent,
-    form: &FormValues,
-    range: Option<&DpiRange>,
-) -> Result<Vec<ProfileEdit>, String> {
+pub fn form_edits(original: &ProfileContent, form: &FormValues, range: Option<&DpiRange>) -> Result<Vec<ProfileEdit>, String> {
     let mut edits = Vec::new();
     let mut stages = [0u16; DPI_SLOTS];
     for (ix, text) in form.dpi.iter().enumerate() {
@@ -176,9 +132,7 @@ pub fn form_edits(
         let dpi: u16 = if text.is_empty() {
             0
         } else {
-            text.replace(',', "")
-                .parse()
-                .map_err(|_| format!("Stage {}: \"{text}\" isn't a DPI value.", ix + 1))?
+            text.replace(',', "").parse().map_err(|_| format!("Stage {}: \"{text}\" isn't a DPI value.", ix + 1))?
         };
         if dpi != 0 {
             match range {
@@ -196,10 +150,7 @@ pub fn form_edits(
                     }
                 }
                 Some(DpiRange::Discrete(values)) if !values.contains(&dpi) => {
-                    return Err(format!(
-                        "Stage {}: this sensor doesn't support {dpi} DPI.",
-                        ix + 1
-                    ));
+                    return Err(format!("Stage {}: this sensor doesn't support {dpi} DPI.", ix + 1));
                 }
                 _ => {}
             }
@@ -220,10 +171,7 @@ pub fn form_edits(
     }
     for (ix, (new, old)) in form.buttons.iter().zip(&original.bindings).enumerate() {
         if new != old {
-            edits.push(ProfileEdit::SetButton {
-                index: ix,
-                binding: *new,
-            });
+            edits.push(ProfileEdit::SetButton { index: ix, binding: *new });
         }
     }
     Ok(edits)

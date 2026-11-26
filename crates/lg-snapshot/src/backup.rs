@@ -32,21 +32,11 @@ struct SectorRecord {
 /// Read every user sector and factory profile and write them, with a
 /// manifest, into a new timestamped directory under `out`. Returns that
 /// directory and how many sectors could not be read.
-pub fn save_backup<T: Transport>(
-    dev: &mut Device<T>,
-    label: &str,
-    out: &Path,
-) -> Result<(PathBuf, usize), String> {
+pub fn save_backup<T: Transport>(dev: &mut Device<T>, label: &str, out: &Path) -> Result<(PathBuf, usize), String> {
     let raw = onboard_profiles::info_raw(dev).map_err(|e| e.to_string())?;
     let d = Descriptor::parse(&raw).ok_or("short onboard-profiles descriptor")?;
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|e| e.to_string())?
-        .as_secs();
-    let slug: String = label
-        .chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '-' })
-        .collect();
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?.as_secs();
+    let slug: String = label.chars().map(|c| if c.is_ascii_alphanumeric() { c } else { '-' }).collect();
     let dir = out.join(format!("{now}-{}", slug.trim_matches('-')));
     std::fs::create_dir_all(&dir).map_err(|e| format!("creating {}: {e}", dir.display()))?;
 
@@ -59,13 +49,11 @@ pub fn save_backup<T: Transport>(
             Ok(bytes) => {
                 let s = Sector::new(addr, bytes);
                 let file = format!("sector-{addr:04x}.bin");
-                std::fs::write(dir.join(&file), &s.bytes)
-                    .map_err(|e| format!("writing {file}: {e}"))?;
+                std::fs::write(dir.join(&file), &s.bytes).map_err(|e| format!("writing {file}: {e}"))?;
                 records.push(SectorRecord {
                     address,
                     file: Some(file),
-                    crc_valid: (!s.is_rom() && !s.is_erased() && !s.is_zeroed())
-                        .then(|| s.crc_valid()),
+                    crc_valid: (!s.is_rom() && !s.is_erased() && !s.is_zeroed()).then(|| s.crc_valid()),
                     erased: s.is_erased(),
                     zeroed: s.is_zeroed(),
                     error: None,
@@ -88,16 +76,11 @@ pub fn save_backup<T: Transport>(
         created_unix: now,
         device: label.to_string(),
         protocol: format!("{maj}.{min}"),
-        descriptor_hex: raw
-            .iter()
-            .map(|b| format!("{b:02x}"))
-            .collect::<Vec<_>>()
-            .join(" "),
+        descriptor_hex: raw.iter().map(|b| format!("{b:02x}")).collect::<Vec<_>>().join(" "),
         active_profile: onboard_profiles::active_profile(dev).ok(),
         sectors: records,
     };
     let json = serde_json::to_string_pretty(&manifest).map_err(|e| e.to_string())?;
-    std::fs::write(dir.join("manifest.json"), json)
-        .map_err(|e| format!("writing manifest: {e}"))?;
+    std::fs::write(dir.join("manifest.json"), json).map_err(|e| format!("writing manifest: {e}"))?;
     Ok((dir, failed))
 }

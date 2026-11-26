@@ -6,9 +6,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
-    #[error(
-        "timed out waiting for reply to feature index {feature_index:#04x} function {function}"
-    )]
+    #[error("timed out waiting for reply to feature index {feature_index:#04x} function {function}")]
     Timeout { feature_index: u8, function: u8 },
     #[error("HID++ 2.0 error {0}")]
     Hidpp20(Hidpp20Error),
@@ -20,18 +18,12 @@ pub enum Error {
     Malformed(String),
     #[error("device supports neither short nor long HID++ reports")]
     NoHidppReports,
-    #[error(
-        "the mouse is not connected to its receiver: it is switched off, asleep or out of range"
-    )]
+    #[error("the mouse is not connected to its receiver: it is switched off, asleep or out of range")]
     NotConnected,
     #[error("refusing to write sector {sector:#06x}: {reason}")]
     WriteRefused { sector: u16, reason: String },
     #[error("writing sector {sector:#06x} failed ({cause}); original contents {}", if *.restored { "were restored and verified" } else { "could NOT be restored" })]
-    WriteFailed {
-        sector: u16,
-        cause: String,
-        restored: bool,
-    },
+    WriteFailed { sector: u16, cause: String, restored: bool },
 }
 
 /// HID++ 2.0 error codes (`ff` feature-index replies).

@@ -56,31 +56,16 @@ mod tests {
 
     #[test]
     fn proteus_spectrum() {
-        let d = Descriptor::parse(&[
-            0x01, 0x02, 0x01, 0x03, 0x03, 0x0b, 0x10, 0x01, 0x00, 0x0a, 0x01,
-        ])
-        .unwrap();
-        assert_eq!(
-            (d.profile_format, d.profile_count, d.rom_profile_count),
-            (2, 3, 3)
-        );
-        assert_eq!(
-            (d.button_count, d.sector_count, d.sector_size),
-            (11, 16, 256)
-        );
+        let d = Descriptor::parse(&[0x01, 0x02, 0x01, 0x03, 0x03, 0x0b, 0x10, 0x01, 0x00, 0x0a, 0x01]).unwrap();
+        assert_eq!((d.profile_format, d.profile_count, d.rom_profile_count), (2, 3, 3));
+        assert_eq!((d.button_count, d.sector_count, d.sector_size), (11, 16, 256));
         assert!(d.layout_supported());
     }
 
     #[test]
     fn lightspeed() {
-        let d = Descriptor::parse(&[
-            0x01, 0x03, 0x01, 0x05, 0x01, 0x0b, 0x10, 0x00, 0xff, 0x0a, 0x04,
-        ])
-        .unwrap();
-        assert_eq!(
-            (d.profile_format, d.profile_count, d.rom_profile_count),
-            (3, 5, 1)
-        );
+        let d = Descriptor::parse(&[0x01, 0x03, 0x01, 0x05, 0x01, 0x0b, 0x10, 0x00, 0xff, 0x0a, 0x04]).unwrap();
+        assert_eq!((d.profile_format, d.profile_count, d.rom_profile_count), (3, 5, 1));
         assert_eq!(d.sector_size, 255);
     }
 }

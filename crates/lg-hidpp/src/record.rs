@@ -39,8 +39,7 @@ impl Recorder {
     /// Write a section header that [`crate::replay::parse_log`] uses to split devices.
     pub fn begin_device(&mut self, name: &str, hidraw: &str) {
         self.lines.push(format!("ratbag debug: New device: {name}"));
-        self.lines
-            .push(format!("ratbag debug: {name} is device '{hidraw}'."));
+        self.lines.push(format!("ratbag debug: {name} is device '{hidraw}'."));
     }
 
     pub fn note(&mut self, text: &str) {
@@ -49,11 +48,7 @@ impl Recorder {
 
     /// Zero `payload` bytes of every recorded reply to `feature_index`/`function`.
     pub fn redact(&mut self, feature_index: u8, function: u8, payload: Range<usize>) {
-        self.redactions.push(Redaction {
-            feature_index,
-            function,
-            payload,
-        });
+        self.redactions.push(Redaction { feature_index, function, payload });
     }
 
     pub fn text(&self) -> String {
@@ -65,18 +60,10 @@ impl Recorder {
     fn record(&mut self, dir: &str, bytes: &[u8]) {
         let mut bytes = bytes.to_vec();
         if dir == "read"
-            && let Incoming::Message {
-                feature_index,
-                function,
-                ..
-            } = Incoming::parse(&bytes)
+            && let Incoming::Message { feature_index, function, .. } = Incoming::parse(&bytes)
             && matches!(bytes[0], SHORT_REPORT_ID | LONG_REPORT_ID)
         {
-            for r in self
-                .redactions
-                .iter()
-                .filter(|r| r.feature_index == feature_index && r.function == function)
-            {
+            for r in self.redactions.iter().filter(|r| r.feature_index == feature_index && r.function == function) {
                 for i in r.payload.clone() {
                     if let Some(b) = bytes.get_mut(4 + i) {
                         *b = 0;
@@ -86,8 +73,7 @@ impl Recorder {
         }
         let hex: Vec<String> = bytes.iter().map(|b| format!("{b:02x}")).collect();
         let pad = if dir == "read" { "   " } else { "  " };
-        self.lines
-            .push(format!("ratbag raw: hidpp {dir}:{pad}{}", hex.join(" ")));
+        self.lines.push(format!("ratbag raw: hidpp {dir}:{pad}{}", hex.join(" ")));
     }
 }
 
