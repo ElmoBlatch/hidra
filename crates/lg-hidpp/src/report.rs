@@ -127,13 +127,26 @@ mod tests {
 
     #[test]
     fn short_request_encoding() {
-        let req = Request { device_index: 0xff, feature_index: 0x00, function: 1, params: vec![] };
-        assert_eq!(req.encode(true, true).unwrap(), vec![0x10, 0xff, 0x00, 0x1b, 0, 0, 0]);
+        let req = Request {
+            device_index: 0xff,
+            feature_index: 0x00,
+            function: 1,
+            params: vec![],
+        };
+        assert_eq!(
+            req.encode(true, true).unwrap(),
+            vec![0x10, 0xff, 0x00, 0x1b, 0, 0, 0]
+        );
     }
 
     #[test]
     fn long_request_when_params_exceed_short() {
-        let req = Request { device_index: 0xff, feature_index: 0x0e, function: 5, params: vec![0, 1, 0, 0x10] };
+        let req = Request {
+            device_index: 0xff,
+            feature_index: 0x0e,
+            function: 5,
+            params: vec![0, 1, 0, 0x10],
+        };
         let enc = req.encode(true, true).unwrap();
         assert_eq!(enc.len(), LONG_REPORT_LEN);
         assert_eq!(&enc[..8], &[0x11, 0xff, 0x0e, 0x5b, 0, 1, 0, 0x10]);
@@ -141,23 +154,44 @@ mod tests {
 
     #[test]
     fn long_only_device_gets_long_report() {
-        let req = Request { device_index: 1, feature_index: 0, function: 0, params: vec![0x81, 0x00] };
+        let req = Request {
+            device_index: 1,
+            feature_index: 0,
+            function: 0,
+            params: vec![0x81, 0x00],
+        };
         assert_eq!(req.encode(false, true).unwrap()[0], LONG_REPORT_ID);
     }
 
     #[test]
     fn parse_errors_and_noise() {
-        let e20 = [0x11, 0xff, 0xff, 0x0e, 0x5b, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let e20 = [
+            0x11, 0xff, 0xff, 0x0e, 0x5b, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
         assert_eq!(
             Incoming::parse(&e20),
-            Incoming::Error20 { device_index: 0xff, feature_index: 0x0e, function: 5, software_id: 0xb, code: 2 }
+            Incoming::Error20 {
+                device_index: 0xff,
+                feature_index: 0x0e,
+                function: 5,
+                software_id: 0xb,
+                code: 2
+            }
         );
         let e10 = [0x10, 0x01, 0x8f, 0x00, 0x1b, 0x09, 0x00];
         assert_eq!(
             Incoming::parse(&e10),
-            Incoming::Error10 { device_index: 1, sub_id: 0, address: 0x1b, code: 9 }
+            Incoming::Error10 {
+                device_index: 1,
+                sub_id: 0,
+                address: 0x1b,
+                code: 9
+            }
         );
         // Mouse input report (report ID 2) interleaved with HID++ traffic.
-        assert_eq!(Incoming::parse(&[0x02, 0, 0, 0, 0, 1, 0, 0, 0]), Incoming::Other);
+        assert_eq!(
+            Incoming::parse(&[0x02, 0, 0, 0, 0, 1, 0, 0, 0]),
+            Incoming::Other
+        );
     }
 }

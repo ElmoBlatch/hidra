@@ -31,6 +31,10 @@ pub fn init(cx: &mut App) {
 
 /// Switch between the dark and light Graphite themes.
 pub fn toggle(cx: &mut App) {
-    let next = if cx.theme().is_dark() { ThemeMode::Light } else { ThemeMode::Dark };
+    let next = if cx.theme().is_dark() {
+        ThemeMode::Light
+    } else {
+        ThemeMode::Dark
+    };
     Theme::change(next, None, cx);
 }

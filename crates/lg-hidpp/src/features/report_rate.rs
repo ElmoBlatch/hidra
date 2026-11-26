@@ -8,7 +8,10 @@ pub const PAGE: u16 = 0x8060;
 pub fn supported_rates_hz<T: Transport>(dev: &mut Device<T>) -> Result<Vec<u16>> {
     let idx = dev.require(PAGE)?;
     let mask = dev.call(idx, 0, &[0, 0, 0])?[0];
-    let mut rates: Vec<u16> = (0..8).filter(|b| mask & (1 << b) != 0).map(|b| 1000 / (b + 1)).collect();
+    let mut rates: Vec<u16> = (0..8)
+        .filter(|b| mask & (1 << b) != 0)
+        .map(|b| 1000 / (b + 1))
+        .collect();
     rates.sort_unstable();
     Ok(rates)
 }

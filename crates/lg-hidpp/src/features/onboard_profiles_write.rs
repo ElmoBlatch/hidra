@@ -26,7 +26,11 @@ fn crc_ccitt(data: &[u8]) -> u16 {
     for &byte in data {
         crc ^= (byte as u16) << 8;
         for _ in 0..8 {
-            crc = if crc & 0x8000 != 0 { (crc << 1) ^ 0x1021 } else { crc << 1 };
+            crc = if crc & 0x8000 != 0 {
+                (crc << 1) ^ 0x1021
+            } else {
+                crc << 1
+            };
         }
     }
     crc
@@ -64,7 +68,8 @@ fn send_sector<T: Transport>(dev: &mut Device<T>, sector: u16, data: &[u8]) -> R
 fn roll_back<T: Transport>(dev: &mut Device<T>, sector: u16, original: &[u8]) -> bool {
     let size = original.len() as u16;
     (0..ROLLBACK_ATTEMPTS).any(|_| {
-        send_sector(dev, sector, original).is_ok() && read_sector(dev, sector, size).is_ok_and(|now| now == original)
+        send_sector(dev, sector, original).is_ok()
+            && read_sector(dev, sector, size).is_ok_and(|now| now == original)
     })
 }
 
@@ -78,7 +83,12 @@ pub fn replace_sector<T: Transport>(
     expected_current: &[u8],
     new: &[u8],
 ) -> Result<()> {
-    let refuse = |reason: &str| Err(Error::WriteRefused { sector, reason: reason.to_string() });
+    let refuse = |reason: &str| {
+        Err(Error::WriteRefused {
+            sector,
+            reason: reason.to_string(),
+        })
+    };
     if sector & 0xff00 != 0 {
         return refuse("not a user sector");
     }
@@ -91,24 +101,30 @@ pub fn replace_sector<T: Transport>(
     let size = new.len() as u16;
     let current = read_sector(dev, sector, size)?;
     if current != expected_current {
-        return refuse("the device's contents differ from what the change was based on; read it again");
+        return refuse(
+            "the device's contents differ from what the change was based on; read it again",
+        );
     }
     if current == new {
         return Ok(());
     }
 
-    let outcome = send_sector(dev, sector, new).map_err(|e| e.to_string()).and_then(|()| {
-        match read_sector(dev, sector, size) {
+    let outcome = send_sector(dev, sector, new)
+        .map_err(|e| e.to_string())
+        .and_then(|()| match read_sector(dev, sector, size) {
             Ok(now) if now == new => Ok(()),
             Ok(_) => Err("read-back does not match what was written".to_string()),
             Err(e) => Err(format!("read-back failed: {e}")),
-        }
-    });
+        });
     match outcome {
         Ok(()) => Ok(()),
         Err(cause) => {
             let restored = roll_back(dev, sector, expected_current);
-            Err(Error::WriteFailed { sector, cause, restored })
+            Err(Error::WriteFailed {
+                sector,
+                cause,
+                restored,
+            })
         }
     }
 }
@@ -118,7 +134,12 @@ pub fn replace_sector<T: Transport>(
 /// path for putting a backup back, including sectors that were erased
 /// (all `0xff`, which never carries a valid CRC).
 pub fn restore_sector<T: Transport>(dev: &mut Device<T>, sector: u16, bytes: &[u8]) -> Result<()> {
-    let refuse = |reason: &str| Err(Error::WriteRefused { sector, reason: reason.to_string() });
+    let refuse = |reason: &str| {
+        Err(Error::WriteRefused {
+            sector,
+            reason: reason.to_string(),
+        })
+    };
     if sector & 0xff00 != 0 {
         return refuse("not a user sector");
     }
@@ -129,12 +150,18 @@ pub fn restore_sector<T: Transport>(dev: &mut Device<T>, sector: u16, bytes: &[u
     if read_sector(dev, sector, size)? == bytes {
         return Ok(());
     }
-    let ok = (0..ROLLBACK_ATTEMPTS)
-        .any(|_| send_sector(dev, sector, bytes).is_ok() && read_sector(dev, sector, size).is_ok_and(|now| now == bytes));
+    let ok = (0..ROLLBACK_ATTEMPTS).any(|_| {
+        send_sector(dev, sector, bytes).is_ok()
+            && read_sector(dev, sector, size).is_ok_and(|now| now == bytes)
+    });
     if ok {
         Ok(())
     } else {
-        Err(Error::WriteFailed { sector, cause: "restore did not read back correctly".into(), restored: false })
+        Err(Error::WriteFailed {
+            sector,
+            cause: "restore did not read back correctly".into(),
+            restored: false,
+        })
     }
 }
 

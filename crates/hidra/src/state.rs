@@ -12,7 +12,10 @@ pub enum Source {
     /// Live hidraw nodes found through sysfs.
     Hardware,
     /// A `ratbagd --verbose=raw` capture; every segment, or one by name.
-    Replay { log: PathBuf, segment: Option<String> },
+    Replay {
+        log: PathBuf,
+        segment: Option<String>,
+    },
     /// A fixed set of devices, e.g. simulated mice for demo mode and tests.
     Fixed(Vec<DeviceEntry>),
 }
@@ -21,9 +24,11 @@ impl Source {
     /// A simulated G502 Proteus Spectrum seeded from the bundled capture.
     /// Edits work and are kept in memory only.
     pub fn demo() -> Result<Self, String> {
-        const CAPTURE: &str = include_str!("../../../captures/ratbagd/g502-proteus-spectrum-c332.log");
+        const CAPTURE: &str =
+            include_str!("../../../captures/ratbagd/g502-proteus-spectrum-c332.log");
         let mut entry =
-            lg_snapshot::simulated_entry_from_log(CAPTURE, "Logitech Gaming Mouse G502").map_err(|e| e.to_string())?;
+            lg_snapshot::simulated_entry_from_log(CAPTURE, "Logitech Gaming Mouse G502")
+                .map_err(|e| e.to_string())?;
         entry.model = "G502 Proteus Spectrum".to_string();
         Ok(Self::Fixed(vec![entry]))
     }
@@ -31,7 +36,9 @@ impl Source {
     /// Find devices. Blocking (sysfs or file I/O).
     pub fn discover(&self) -> Result<Vec<DeviceEntry>, String> {
         match self {
-            Self::Hardware => lg_snapshot::discover().map_err(|e| format!("Couldn't list hidraw devices: {e}")),
+            Self::Hardware => {
+                lg_snapshot::discover().map_err(|e| format!("Couldn't list hidraw devices: {e}"))
+            }
             Self::Fixed(entries) => Ok(entries.clone()),
             Self::Replay { log, segment } => {
                 lg_snapshot::replay_entries(log, segment.as_deref()).map_err(|e| e.to_string())
@@ -63,7 +70,9 @@ pub enum Discovery {
 /// until the new one arrives.
 #[derive(Debug, Clone)]
 pub enum DeviceRead {
-    Reading { previous: Option<Arc<DeviceSnapshot>> },
+    Reading {
+        previous: Option<Arc<DeviceSnapshot>>,
+    },
     Ready(Arc<DeviceSnapshot>),
     Failed(ReadError),
 }
@@ -113,7 +122,9 @@ pub fn default_profile(set: &ProfileSet) -> Option<u16> {
 
 /// The profile to show: the user's choice if it still exists, else the default.
 pub fn shown_profile(set: &ProfileSet, chosen: Option<u16>) -> Option<u16> {
-    chosen.filter(|a| set.profiles.iter().any(|p| p.address == *a)).or_else(|| default_profile(set))
+    chosen
+        .filter(|a| set.profiles.iter().any(|p| p.address == *a))
+        .or_else(|| default_profile(set))
 }
 
 #[cfg(test)]

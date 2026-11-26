@@ -103,7 +103,10 @@ impl SimMemory {
     }
 
     fn live_rate_ms(&self) -> u8 {
-        self.sectors.get(&self.active_profile).and_then(|s| s.first().copied()).unwrap_or(1)
+        self.sectors
+            .get(&self.active_profile)
+            .and_then(|s| s.first().copied())
+            .unwrap_or(1)
     }
 }
 
@@ -115,7 +118,10 @@ pub struct SimMouse {
 
 impl SimMouse {
     pub fn new(memory: Arc<Mutex<SimMemory>>) -> Self {
-        Self { memory, pending: VecDeque::new() }
+        Self {
+            memory,
+            pending: VecDeque::new(),
+        }
     }
 
     fn reply(&mut self, req: &[u8], payload: &[u8]) {
@@ -144,7 +150,11 @@ impl Transport for SimMouse {
         let mut m = memory.lock().expect("sim memory lock");
         match (feature, function) {
             (0, 0) => {
-                let index = PAGES.iter().position(|&pg| pg == be16(0)).map(|i| i as u8 + 1).unwrap_or(0);
+                let index = PAGES
+                    .iter()
+                    .position(|&pg| pg == be16(0))
+                    .map(|i| i as u8 + 1)
+                    .unwrap_or(0);
                 self.reply(req, &[index, 0, 0]);
             }
             (0, 1) => self.reply(req, &[4, 2, p(2)]),

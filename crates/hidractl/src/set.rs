@@ -22,7 +22,9 @@ pub struct Request {
 
 /// Parse `KEY=VALUE`.
 pub fn split_pair(text: &str) -> Result<(String, String)> {
-    let (k, v) = text.split_once('=').with_context(|| format!("expected NAME=VALUE, got \"{text}\""))?;
+    let (k, v) = text
+        .split_once('=')
+        .with_context(|| format!("expected NAME=VALUE, got \"{text}\""))?;
     Ok((k.trim().to_string(), v.trim().to_string()))
 }
 
@@ -38,7 +40,9 @@ fn button_index(name: &str) -> Result<usize> {
     let digits = lower.strip_prefix('g').unwrap_or(&lower);
     match digits.parse::<usize>() {
         Ok(n) if n >= 1 => Ok(n - 1),
-        _ => bail!("unknown button \"{name}\" (use G1..G9, tilt-left, tilt-right, or a button number)"),
+        _ => bail!(
+            "unknown button \"{name}\" (use G1..G9, tilt-left, tilt-right, or a button number)"
+        ),
     }
 }
 
@@ -48,16 +52,38 @@ fn summarize(p: &Profile) -> Vec<String> {
         .iter()
         .enumerate()
         .map(|(i, &v)| {
-            let tag = if i as u8 == p.default_stage() { "*" } else { "" };
-            if v == 0 { format!("-{tag}") } else { format!("{v}{tag}") }
+            let tag = if i as u8 == p.default_stage() {
+                "*"
+            } else {
+                ""
+            };
+            if v == 0 {
+                format!("-{tag}")
+            } else {
+                format!("{v}{tag}")
+            }
         })
         .collect();
-    let mut lines = vec![format!("DPI stages  {}", stages.join(" / ")), format!("polling     {} Hz", p.report_rate_hz())];
-    lines.extend(p.buttons().iter().enumerate().map(|(i, b)| format!("button {:<2}   {}", i + 1, b.label())));
+    let mut lines = vec![
+        format!("DPI stages  {}", stages.join(" / ")),
+        format!("polling     {} Hz", p.report_rate_hz()),
+    ];
+    lines.extend(
+        p.buttons()
+            .iter()
+            .enumerate()
+            .map(|(i, b)| format!("button {:<2}   {}", i + 1, b.label())),
+    );
     lines
 }
 
-pub fn run(device: Option<&Path>, profile: u8, request: Request, yes: bool, backup_dir: &Path) -> Result<()> {
+pub fn run(
+    device: Option<&Path>,
+    profile: u8,
+    request: Request,
+    yes: bool,
+    backup_dir: &Path,
+) -> Result<()> {
     if profile == 0 {
         bail!("profiles are numbered from 1");
     }
@@ -66,7 +92,10 @@ pub fn run(device: Option<&Path>, profile: u8, request: Request, yes: bool, back
         if stage == 0 || stage as usize > DPI_SLOTS {
             bail!("stage must be 1 to {DPI_SLOTS}");
         }
-        edits.push(ProfileEdit::SetDpi { stage: stage as usize - 1, dpi });
+        edits.push(ProfileEdit::SetDpi {
+            stage: stage as usize - 1,
+            dpi,
+        });
     }
     if let Some(stage) = request.default_stage {
         if stage == 0 || stage as usize > DPI_SLOTS {
@@ -78,10 +107,15 @@ pub fn run(device: Option<&Path>, profile: u8, request: Request, yes: bool, back
         edits.push(ProfileEdit::SetReportRate(hz));
     }
     for (name, action) in &request.buttons {
-        edits.push(ProfileEdit::SetButton { index: button_index(name)?, binding: ButtonBinding::parse(action)? });
+        edits.push(ProfileEdit::SetButton {
+            index: button_index(name)?,
+            binding: ButtonBinding::parse(action)?,
+        });
     }
     if edits.is_empty() {
-        bail!("nothing to change: give at least one of --dpi, --default-stage, --polling, --button");
+        bail!(
+            "nothing to change: give at least one of --dpi, --default-stage, --polling, --button"
+        );
     }
 
     let entries: Vec<_> = discover()?
@@ -103,8 +137,13 @@ pub fn run(device: Option<&Path>, profile: u8, request: Request, yes: bool, back
     // Profile number -> sector, through the directory.
     let raw = onboard_profiles::info_raw(&mut dev)?;
     let d = lg_profiles::Descriptor::parse(&raw).context("short onboard-profiles descriptor")?;
-    let dir = Directory::parse(&Sector::new(0, onboard_profiles::read_sector(&mut dev, 0, d.sector_size)?))
-        .context("the user profile directory is blank or invalid; only existing profiles can be edited")?;
+    let dir = Directory::parse(&Sector::new(
+        0,
+        onboard_profiles::read_sector(&mut dev, 0, d.sector_size)?,
+    ))
+    .context(
+        "the user profile directory is blank or invalid; only existing profiles can be edited",
+    )?;
     let address = dir
         .entries
         .get(profile as usize - 1)
@@ -123,7 +162,14 @@ pub fn run(device: Option<&Path>, profile: u8, request: Request, yes: bool, back
             println!("  + {a}");
         }
     }
-    println!("  bytes that change: {}", plan.changed.iter().map(|o| format!("{o:#04x}")).collect::<Vec<_>>().join(" "));
+    println!(
+        "  bytes that change: {}",
+        plan.changed
+            .iter()
+            .map(|o| format!("{o:#04x}"))
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
     if plan.is_noop() {
         println!("  nothing to do: the profile already has those values");
         return Ok(());
@@ -133,16 +179,22 @@ pub fn run(device: Option<&Path>, profile: u8, request: Request, yes: bool, back
         return Ok(());
     }
 
-    let sensor_before = adjustable_dpi::sensor_dpi(&mut dev, 0).ok().map(|s| s.current);
+    let sensor_before = adjustable_dpi::sensor_dpi(&mut dev, 0)
+        .ok()
+        .map(|s| s.current);
     let rate_before = report_rate::current_rate_hz(&mut dev).ok();
     let backup = commit_edit(&mut dev, &plan, &label, backup_dir)?;
-    let sensor_after = adjustable_dpi::sensor_dpi(&mut dev, 0).ok().map(|s| s.current);
+    let sensor_after = adjustable_dpi::sensor_dpi(&mut dev, 0)
+        .ok()
+        .map(|s| s.current);
     let rate_after = report_rate::current_rate_hz(&mut dev).ok();
 
     if let Some(dir) = backup {
         println!("  backup saved to {}", dir.display());
     }
     println!("  written; read-back matches, directory and other profiles unchanged");
-    println!("  live sensor DPI {sensor_before:?} -> {sensor_after:?}, live polling {rate_before:?} -> {rate_after:?} Hz");
+    println!(
+        "  live sensor DPI {sensor_before:?} -> {sensor_after:?}, live polling {rate_before:?} -> {rate_after:?} Hz"
+    );
     Ok(())
 }

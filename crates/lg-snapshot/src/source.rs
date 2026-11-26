@@ -48,7 +48,10 @@ impl Connection {
 #[derive(Debug, Clone)]
 pub enum DeviceSource {
     Hidraw(PathBuf),
-    Replay { log: PathBuf, segment: String },
+    Replay {
+        log: PathBuf,
+        segment: String,
+    },
     /// A simulated mouse whose memory persists for the life of the entry.
     Sim(Arc<Mutex<SimMemory>>),
 }
@@ -57,7 +60,16 @@ impl PartialEq for DeviceSource {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Hidraw(a), Self::Hidraw(b)) => a == b,
-            (Self::Replay { log: a, segment: sa }, Self::Replay { log: b, segment: sb }) => a == b && sa == sb,
+            (
+                Self::Replay {
+                    log: a,
+                    segment: sa,
+                },
+                Self::Replay {
+                    log: b,
+                    segment: sb,
+                },
+            ) => a == b && sa == sb,
             (Self::Sim(a), Self::Sim(b)) => Arc::ptr_eq(a, b),
             _ => false,
         }
@@ -95,9 +107,10 @@ impl DeviceEntry {
     pub fn location(&self) -> String {
         match &self.source {
             DeviceSource::Hidraw(p) => p.display().to_string(),
-            DeviceSource::Replay { log, .. } => {
-                log.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| log.display().to_string())
-            }
+            DeviceSource::Replay { log, .. } => log
+                .file_name()
+                .map(|n| n.to_string_lossy().into_owned())
+                .unwrap_or_else(|| log.display().to_string()),
             DeviceSource::Sim(_) => "simulated".to_string(),
         }
     }
@@ -139,7 +152,8 @@ pub fn discover() -> io::Result<Vec<DeviceEntry>> {
 /// Entries for a `ratbagd --verbose=raw` capture: the named segment, or every
 /// segment with HID++ traffic when `segment` is `None`.
 pub fn replay_entries(log: &Path, segment: Option<&str>) -> Result<Vec<DeviceEntry>, ReadError> {
-    let text = std::fs::read_to_string(log).map_err(|e| ReadError::Other(format!("reading {}: {e}", log.display())))?;
+    let text = std::fs::read_to_string(log)
+        .map_err(|e| ReadError::Other(format!("reading {}: {e}", log.display())))?;
     let entries: Vec<DeviceEntry> = parse_log(&text)
         .into_iter()
         .filter(|s| segment.is_none_or(|name| s.name == name))
@@ -148,12 +162,18 @@ pub fn replay_entries(log: &Path, segment: Option<&str>) -> Result<Vec<DeviceEnt
             product: 0,
             model: s.name.clone(),
             connection: Connection::Replay,
-            source: DeviceSource::Replay { log: log.to_path_buf(), segment: s.name },
+            source: DeviceSource::Replay {
+                log: log.to_path_buf(),
+                segment: s.name,
+            },
         })
         .collect();
     if entries.is_empty() {
         return Err(ReadError::Other(match segment {
-            Some(name) => format!("no segment named \"{name}\" with HID++ traffic in {}", log.display()),
+            Some(name) => format!(
+                "no segment named \"{name}\" with HID++ traffic in {}",
+                log.display()
+            ),
             None => format!("no device segment with HID++ traffic in {}", log.display()),
         }));
     }
@@ -165,7 +185,8 @@ pub fn replay_entries(log: &Path, segment: Option<&str>) -> Result<Vec<DeviceEnt
 /// life of the returned entry, so the whole edit path can be exercised
 /// without hardware.
 pub fn simulated_entry(log: &Path, segment: &str) -> Result<DeviceEntry, ReadError> {
-    let text = std::fs::read_to_string(log).map_err(|e| ReadError::Other(format!("reading {}: {e}", log.display())))?;
+    let text = std::fs::read_to_string(log)
+        .map_err(|e| ReadError::Other(format!("reading {}: {e}", log.display())))?;
     simulated_entry_from_log(&text, segment)
 }
 
@@ -174,11 +195,16 @@ pub fn simulated_entry_from_log(text: &str, segment: &str) -> Result<DeviceEntry
     let seg = parse_log(text)
         .into_iter()
         .find(|s| s.name == segment)
-        .ok_or_else(|| ReadError::Other(format!("no segment named \"{segment}\" in the capture")))?;
+        .ok_or_else(|| {
+            ReadError::Other(format!("no segment named \"{segment}\" in the capture"))
+        })?;
     let model = seg.name.clone();
-    let mut dev =
-        Device::open_with_timeout(AnyTransport::Replay(ReplayTransport::new(seg)), DEVICE_INDEX_DIRECT, REPLAY_TIMEOUT)
-            .map_err(|e| ReadError::Unreachable(e.to_string()))?;
+    let mut dev = Device::open_with_timeout(
+        AnyTransport::Replay(ReplayTransport::new(seg)),
+        DEVICE_INDEX_DIRECT,
+        REPLAY_TIMEOUT,
+    )
+    .map_err(|e| ReadError::Unreachable(e.to_string()))?;
     let other = |e: lg_hidpp::Error| ReadError::Other(format!("reading the capture: {e}"));
     let descriptor = onboard_profiles::info_raw(&mut dev).map_err(other)?;
     let d = lg_profiles::Descriptor::parse(&descriptor)
@@ -186,15 +212,21 @@ pub fn simulated_entry_from_log(text: &str, segment: &str) -> Result<DeviceEntry
     let active = onboard_profiles::active_profile(&mut dev).map_err(other)?;
     let mut sectors = std::collections::BTreeMap::new();
     let directory = onboard_profiles::read_sector(&mut dev, 0, d.sector_size).map_err(other)?;
-    let profile_sectors: Vec<u16> = lg_profiles::Directory::parse(&lg_profiles::Sector::new(0, directory.clone()))
-        .map(|dir| dir.entries.iter().map(|e| e.sector).collect())
-        .unwrap_or_default();
+    let profile_sectors: Vec<u16> =
+        lg_profiles::Directory::parse(&lg_profiles::Sector::new(0, directory.clone()))
+            .map(|dir| dir.entries.iter().map(|e| e.sector).collect())
+            .unwrap_or_default();
     sectors.insert(0, directory);
     for s in profile_sectors {
-        sectors.insert(s, onboard_profiles::read_sector(&mut dev, s, d.sector_size).map_err(other)?);
+        sectors.insert(
+            s,
+            onboard_profiles::read_sector(&mut dev, s, d.sector_size).map_err(other)?,
+        );
     }
     // Factory profiles, where the capture recorded them.
-    let rom: Vec<u16> = (1..=d.rom_profile_count as u16).map(|n| 0x0100 | n).collect();
+    let rom: Vec<u16> = (1..=d.rom_profile_count as u16)
+        .map(|n| 0x0100 | n)
+        .collect();
     for &address in &rom {
         if let Ok(bytes) = onboard_profiles::read_sector(&mut dev, address, d.sector_size) {
             sectors.insert(address, bytes);
@@ -203,9 +235,15 @@ pub fn simulated_entry_from_log(text: &str, segment: &str) -> Result<DeviceEntry
     // Everything else reads the way the real mice report unused memory: zeros
     // on a device with user profiles (Proteus Spectrum), erased `0xff` on one
     // whose user memory was never written (LIGHTSPEED).
-    let fill = if sectors[&0].iter().all(|&b| b == 0xff) { 0xff } else { 0x00 };
+    let fill = if sectors[&0].iter().all(|&b| b == 0xff) {
+        0xff
+    } else {
+        0x00
+    };
     for address in (0..d.sector_count as u16).chain(rom) {
-        sectors.entry(address).or_insert_with(|| vec![fill; d.sector_size as usize]);
+        sectors
+            .entry(address)
+            .or_insert_with(|| vec![fill; d.sector_size as usize]);
     }
     Ok(DeviceEntry {
         id: format!("sim:{segment}"),
@@ -221,25 +259,38 @@ pub fn open_entry(entry: &DeviceEntry) -> Result<Device<AnyTransport>, ReadError
     match &entry.source {
         DeviceSource::Hidraw(path) => {
             let transport = HidrawTransport::open(path).map_err(|e| match e.kind() {
-                ErrorKind::PermissionDenied => ReadError::PermissionDenied { path: path.display().to_string() },
+                ErrorKind::PermissionDenied => ReadError::PermissionDenied {
+                    path: path.display().to_string(),
+                },
                 _ => ReadError::Other(format!("opening {}: {e}", path.display())),
             })?;
             Device::open(AnyTransport::Hidraw(transport), DEVICE_INDEX_DIRECT)
                 .map_err(|e| ReadError::Unreachable(e.to_string()))
         }
-        DeviceSource::Sim(memory) => {
-            Device::open_with_timeout(AnyTransport::Sim(SimMouse::new(memory.clone())), DEVICE_INDEX_DIRECT, REPLAY_TIMEOUT)
-                .map_err(|e| ReadError::Unreachable(e.to_string()))
-        }
+        DeviceSource::Sim(memory) => Device::open_with_timeout(
+            AnyTransport::Sim(SimMouse::new(memory.clone())),
+            DEVICE_INDEX_DIRECT,
+            REPLAY_TIMEOUT,
+        )
+        .map_err(|e| ReadError::Unreachable(e.to_string())),
         DeviceSource::Replay { log, segment } => {
-            let text =
-                std::fs::read_to_string(log).map_err(|e| ReadError::Other(format!("reading {}: {e}", log.display())))?;
+            let text = std::fs::read_to_string(log)
+                .map_err(|e| ReadError::Other(format!("reading {}: {e}", log.display())))?;
             let seg = parse_log(&text)
                 .into_iter()
                 .find(|s| &s.name == segment)
-                .ok_or_else(|| ReadError::Other(format!("no segment named \"{segment}\" in {}", log.display())))?;
-            Device::open_with_timeout(AnyTransport::Replay(ReplayTransport::new(seg)), DEVICE_INDEX_DIRECT, REPLAY_TIMEOUT)
-                .map_err(|e| ReadError::Unreachable(e.to_string()))
+                .ok_or_else(|| {
+                    ReadError::Other(format!(
+                        "no segment named \"{segment}\" in {}",
+                        log.display()
+                    ))
+                })?;
+            Device::open_with_timeout(
+                AnyTransport::Replay(ReplayTransport::new(seg)),
+                DEVICE_INDEX_DIRECT,
+                REPLAY_TIMEOUT,
+            )
+            .map_err(|e| ReadError::Unreachable(e.to_string()))
         }
     }
 }

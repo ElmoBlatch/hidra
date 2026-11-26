@@ -36,7 +36,11 @@ impl Key {
         let mut params = [0u8; 16];
         let p = &bytes[4..];
         params[..p.len().min(16)].copy_from_slice(&p[..p.len().min(16)]);
-        Some(Self { feature_index: bytes[2], function: bytes[3] >> 4, params })
+        Some(Self {
+            feature_index: bytes[2],
+            function: bytes[3] >> 4,
+            params,
+        })
     }
 }
 
@@ -63,10 +67,16 @@ pub fn parse_log(text: &str) -> Vec<ReplaySegment> {
             if let Some(seg) = current.take().filter(|s| !s.exchanges.is_empty()) {
                 segments.push(seg);
             }
-            current = Some(ReplaySegment { name: rest.trim().to_string(), hidraw: None, exchanges: Vec::new() });
+            current = Some(ReplaySegment {
+                name: rest.trim().to_string(),
+                hidraw: None,
+                exchanges: Vec::new(),
+            });
             continue;
         }
-        let Some(seg) = current.as_mut() else { continue };
+        let Some(seg) = current.as_mut() else {
+            continue;
+        };
         if let Some(rest) = line.split("is device '").nth(1) {
             if seg.hidraw.is_none() {
                 seg.hidraw = rest.split('\'').next().map(str::to_string);
@@ -80,13 +90,20 @@ pub fn parse_log(text: &str) -> Vec<ReplaySegment> {
         } else {
             continue;
         };
-        let Ok(bytes) = hex.split_whitespace().map(|b| u8::from_str_radix(b, 16)).collect::<Result<Vec<u8>, _>>()
+        let Ok(bytes) = hex
+            .split_whitespace()
+            .map(|b| u8::from_str_radix(b, 16))
+            .collect::<Result<Vec<u8>, _>>()
         else {
             continue;
         };
         if is_write {
             if let Some(key) = Key::from_request(&bytes) {
-                seg.exchanges.push(Exchange { key, replies: Vec::new(), used: false });
+                seg.exchanges.push(Exchange {
+                    key,
+                    replies: Vec::new(),
+                    used: false,
+                });
             }
         } else if let Some(ex) = seg.exchanges.last_mut() {
             ex.replies.push(bytes);
@@ -107,7 +124,12 @@ pub struct ReplayTransport {
 
 impl ReplayTransport {
     pub fn new(segment: ReplaySegment) -> Self {
-        Self { exchanges: segment.exchanges, pending: VecDeque::new(), short: true, long: true }
+        Self {
+            exchanges: segment.exchanges,
+            pending: VecDeque::new(),
+            short: true,
+            long: true,
+        }
     }
 
     /// Number of recorded requests that the replay has served at least once.
@@ -117,7 +139,12 @@ impl ReplayTransport {
 
     fn rewrite_swid(mut reply: Vec<u8>) -> Vec<u8> {
         if reply.len() >= 5 && matches!(reply[0], SHORT_REPORT_ID | LONG_REPORT_ID) {
-            let swid_byte = if reply[2] == 0xff || (reply[0] == SHORT_REPORT_ID && reply[2] == 0x8f) { 4 } else { 3 };
+            let swid_byte = if reply[2] == 0xff || (reply[0] == SHORT_REPORT_ID && reply[2] == 0x8f)
+            {
+                4
+            } else {
+                3
+            };
             if reply[swid_byte] & 0x0f != 0 {
                 reply[swid_byte] = (reply[swid_byte] & 0xf0) | SOFTWARE_ID;
             }
@@ -138,7 +165,8 @@ impl Transport for ReplayTransport {
         if let Some(pos) = pos {
             let ex = &mut self.exchanges[pos];
             ex.used = true;
-            self.pending.extend(ex.replies.iter().cloned().map(Self::rewrite_swid));
+            self.pending
+                .extend(ex.replies.iter().cloned().map(Self::rewrite_swid));
         }
         Ok(())
     }

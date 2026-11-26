@@ -31,14 +31,20 @@ pub struct Profile {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProfileEdit {
     /// Set a DPI stage. `dpi == 0` disables the slot.
-    SetDpi { stage: usize, dpi: u16 },
+    SetDpi {
+        stage: usize,
+        dpi: u16,
+    },
     SetDefaultStage(u8),
     SetSwitchedStage(u8),
     /// Polling rate in Hz. Stored as the report interval in milliseconds.
     SetReportRate(u16),
     /// Assign a button (primary layer). Macros and unknown bindings cannot be
     /// assigned, only preserved.
-    SetButton { index: usize, binding: ButtonBinding },
+    SetButton {
+        index: usize,
+        binding: ButtonBinding,
+    },
 }
 
 impl ProfileEdit {
@@ -49,7 +55,9 @@ impl ProfileEdit {
             Self::SetDefaultStage(_) => vec![DEFAULT_DPI],
             Self::SetSwitchedStage(_) => vec![SWITCHED_DPI],
             Self::SetReportRate(_) => vec![REPORT_RATE],
-            Self::SetButton { index, .. } => (BUTTONS + index * 4..BUTTONS + index * 4 + 4).collect(),
+            Self::SetButton { index, .. } => {
+                (BUTTONS + index * 4..BUTTONS + index * 4 + 4).collect()
+            }
         }
     }
 }
@@ -73,9 +81,15 @@ pub struct DpiLimits {
 impl Profile {
     pub fn decode(sector: Sector, button_count: u8) -> Result<Self, Error> {
         if sector.bytes.len() < MIN_LEN {
-            return Err(Error::TooShort { needed: MIN_LEN, actual: sector.bytes.len() });
+            return Err(Error::TooShort {
+                needed: MIN_LEN,
+                actual: sector.bytes.len(),
+            });
         }
-        Ok(Self { sector, button_count: (button_count as usize).min(MAX_BUTTONS) })
+        Ok(Self {
+            sector,
+            button_count: (button_count as usize).min(MAX_BUTTONS),
+        })
     }
 
     pub fn sector(&self) -> &Sector {
@@ -136,7 +150,9 @@ impl Profile {
     /// UTF-16LE profile name, or `None` when unset (erased).
     pub fn name(&self) -> Option<String> {
         let units: Vec<u16> = self.b()[NAME]
-            .as_chunks::<2>().0.iter()
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|c| u16::from_le_bytes([c[0], c[1]]))
             .take_while(|&u| u != 0 && u != 0xffff)
             .collect();
@@ -152,13 +168,21 @@ impl Profile {
     }
 
     fn led_at(&self, o: usize) -> Led {
-        Led { raw: self.b()[o..o + LED_LEN].try_into().expect("11 bytes") }
+        Led {
+            raw: self.b()[o..o + LED_LEN].try_into().expect("11 bytes"),
+        }
     }
 
     /// Return a copy with `edit` applied and the CRC recomputed.
     /// Return a copy with one DPI-related `edit` applied and the CRC recomputed.
     pub fn apply(&self, edit: ProfileEdit, limits: Option<DpiLimits>) -> Result<Self, Error> {
-        self.apply_all(&[edit], &EditLimits { dpi: limits, report_rates_hz: Vec::new() })
+        self.apply_all(
+            &[edit],
+            &EditLimits {
+                dpi: limits,
+                report_rates_hz: Vec::new(),
+            },
+        )
     }
 
     /// Return a copy with every edit applied, in order, and the CRC
@@ -176,7 +200,11 @@ impl Profile {
                         && let Some(l) = limits.dpi
                     {
                         if dpi < l.min || dpi > l.max {
-                            return Err(Error::DpiOutOfRange { dpi, min: l.min, max: l.max });
+                            return Err(Error::DpiOutOfRange {
+                                dpi,
+                                min: l.min,
+                                max: l.max,
+                            });
                         }
                         if l.step > 0 && (dpi - l.min) % l.step != 0 {
                             return Err(Error::DpiNotOnStep { dpi, step: l.step });
@@ -199,13 +227,19 @@ impl Profile {
                 }
                 ProfileEdit::SetReportRate(hz) => {
                     if hz == 0 || !limits.report_rates_hz.contains(&hz) {
-                        return Err(Error::UnsupportedReportRate { hz, supported: limits.report_rates_hz.clone() });
+                        return Err(Error::UnsupportedReportRate {
+                            hz,
+                            supported: limits.report_rates_hz.clone(),
+                        });
                     }
                     bytes[REPORT_RATE] = (1000 / hz) as u8;
                 }
                 ProfileEdit::SetButton { index, binding } => {
                     if index >= self.button_count {
-                        return Err(Error::NoSuchButton { index, count: self.button_count });
+                        return Err(Error::NoSuchButton {
+                            index,
+                            count: self.button_count,
+                        });
                     }
                     let o = BUTTONS + index * 4;
                     // Already that action: keep the stored bytes exactly (the
@@ -221,7 +255,10 @@ impl Profile {
         let n = bytes.len();
         let crc = crc_ccitt(&bytes[..n - 2]);
         bytes[n - 2..].copy_from_slice(&crc.to_be_bytes());
-        let edited = Self { sector: Sector::new(self.sector.address, bytes), button_count: self.button_count };
+        let edited = Self {
+            sector: Sector::new(self.sector.address, bytes),
+            button_count: self.button_count,
+        };
         let default = edited.default_stage() as usize;
         if edited.dpi_stages().get(default).is_none_or(|&dpi| dpi == 0) {
             return Err(Error::DefaultStageDisabled { stage: default });

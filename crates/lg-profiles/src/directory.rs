@@ -31,7 +31,11 @@ impl Directory {
             if s == 0xffff {
                 break;
             }
-            entries.push(DirectoryEntry { profile: i as u8, sector: s, enabled: e[2] != 0 });
+            entries.push(DirectoryEntry {
+                profile: i as u8,
+                sector: s,
+                enabled: e[2] != 0,
+            });
         }
         Some(Self { entries })
     }
@@ -40,6 +44,9 @@ impl Directory {
     /// The address is the profile's sector, not its directory position; this
     /// is the off-by-one that libratbag's `INDEX_OFFSET` quirk corrects.
     pub fn profile_for_address(&self, address: u16) -> Option<u8> {
-        self.entries.iter().find(|e| e.sector == address).map(|e| e.profile)
+        self.entries
+            .iter()
+            .find(|e| e.sector == address)
+            .map(|e| e.profile)
     }
 }

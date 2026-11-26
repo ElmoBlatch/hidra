@@ -40,7 +40,11 @@ pub fn active_resolution_index<T: Transport>(dev: &mut Device<T>) -> Result<u8> 
 /// overlaps the previous one (e.g. 255-byte sectors end with a read at 0xEF).
 pub fn read_offsets(sector_size: u16) -> Vec<u16> {
     let size = sector_size as usize;
-    let mut offsets: Vec<u16> = (0..size).step_by(16).filter(|o| o + 16 <= size).map(|o| o as u16).collect();
+    let mut offsets: Vec<u16> = (0..size)
+        .step_by(16)
+        .filter(|o| o + 16 <= size)
+        .map(|o| o as u16)
+        .collect();
     if !size.is_multiple_of(16) && size >= 16 {
         offsets.push((size - 16) as u16);
     }
@@ -48,9 +52,15 @@ pub fn read_offsets(sector_size: u16) -> Vec<u16> {
 }
 
 /// Read one full sector by issuing `ReadData` for each 16-byte block.
-pub fn read_sector<T: Transport>(dev: &mut Device<T>, sector: u16, sector_size: u16) -> Result<Vec<u8>> {
+pub fn read_sector<T: Transport>(
+    dev: &mut Device<T>,
+    sector: u16,
+    sector_size: u16,
+) -> Result<Vec<u8>> {
     if sector_size < 16 {
-        return Err(Error::Malformed(format!("sector size {sector_size} is smaller than one read")));
+        return Err(Error::Malformed(format!(
+            "sector size {sector_size} is smaller than one read"
+        )));
     }
     let idx = dev.require(PAGE)?;
     let mut out = vec![0u8; sector_size as usize];

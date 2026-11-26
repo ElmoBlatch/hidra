@@ -18,17 +18,17 @@ mod snapshot;
 mod source;
 mod transport;
 
-pub use snapshot::{
-    DeviceSnapshot, DpiRange, Firmware, Integrity, LedSnapshot, OnboardMode, OnboardSummary, ProfileContent, ProfileSet,
-    ProfileSnapshot, Reading, SensorDpi, read_device,
-};
-pub use source::{
-    Connection, DeviceEntry, DeviceSource, ReadError, discover, open_entry, read_entry, replay_entries, simulated_entry,
-    simulated_entry_from_log,
-};
 pub use backup::save_backup;
 pub use edit::{EditError, EditPlan, WRITE_VERIFIED_PIDS, commit_edit, edit_entry, plan_edit};
 pub use init::{InitOutcome, InitPlan, commit_initialize, plan_initialize, restore_from_backup};
+pub use snapshot::{
+    DeviceSnapshot, DpiRange, Firmware, Integrity, LedSnapshot, OnboardMode, OnboardSummary,
+    ProfileContent, ProfileSet, ProfileSnapshot, Reading, SensorDpi, read_device,
+};
+pub use source::{
+    Connection, DeviceEntry, DeviceSource, ReadError, discover, open_entry, read_entry,
+    replay_entries, simulated_entry, simulated_entry_from_log,
+};
 pub use transport::AnyTransport;
 
 /// Timeout used for replayed captures: long enough for the replay transport,

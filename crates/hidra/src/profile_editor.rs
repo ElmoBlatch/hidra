@@ -1,5 +1,7 @@
-//! The profile editor shown in a sheet: polling rate, DPI stages and button
-//! assignments of one onboard profile.
+//! The profile editor shown in a sheet: polling rate and DPI stages of one
+//! onboard profile. Buttons are assigned on the mouse drawing
+//! ([`crate::ButtonMap`]); the sheet lists them only for a mouse that has no
+//! drawing.
 //!
 //! The editor owns only form state. It never touches a device: `Save` emits
 //! the field edits and the window performs the guarded write.
@@ -17,8 +19,8 @@ use gpui_kit::component::{
 };
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    App, AppContext as _, Context, Entity, EventEmitter, IntoElement, ParentElement as _, Render, SharedString,
-    Styled as _, Subscription, Window, div, rems,
+    App, AppContext as _, Context, Entity, EventEmitter, IntoElement, ParentElement as _, Render,
+    SharedString, Styled as _, Subscription, Window, div, rems,
 };
 use lg_profiles::ProfileEdit;
 use lg_snapshot::{DpiRange, ProfileContent};
@@ -68,15 +70,25 @@ impl ProfileEditor {
         let dpi_inputs: Vec<Entity<InputState>> = form
             .dpi
             .iter()
-            .map(|text| cx.new(|cx| InputState::new(window, cx).placeholder("Off").default_value(text.clone())))
+            .map(|text| {
+                cx.new(|cx| {
+                    InputState::new(window, cx)
+                        .placeholder("Off")
+                        .default_value(text.clone())
+                })
+            })
             .collect();
         for input in &dpi_inputs {
-            subscriptions.push(cx.subscribe_in(input, window, |this, _, event: &InputEvent, _, cx| {
-                if matches!(event, InputEvent::Change) {
-                    this.error = None;
-                    cx.notify();
-                }
-            }));
+            subscriptions.push(cx.subscribe_in(
+                input,
+                window,
+                |this, _, event: &InputEvent, _, cx| {
+                    if matches!(event, InputEvent::Change) {
+                        this.error = None;
+                        cx.notify();
+                    }
+                },
+            ));
         }
 
         // The profile's own rate is always offered, even if the device did not list it.
@@ -86,16 +98,26 @@ impl ProfileEditor {
             rates.sort_unstable();
         }
         let rate_labels: Vec<SharedString> = rates.iter().map(|hz| rate_label(*hz)).collect();
-        let rate_ix = rates.iter().position(|hz| *hz == original.report_rate_hz).unwrap_or(0);
-        let polling = cx.new(|cx| SelectState::new(rate_labels, Some(IndexPath::new(rate_ix)), window, cx));
+        let rate_ix = rates
+            .iter()
+            .position(|hz| *hz == original.report_rate_hz)
+            .unwrap_or(0);
+        let polling =
+            cx.new(|cx| SelectState::new(rate_labels, Some(IndexPath::new(rate_ix)), window, cx));
         subscriptions.push(cx.subscribe_in(&polling, window, Self::on_select_changed));
 
         let mut button_selects = Vec::new();
         let mut button_choices = Vec::new();
-        for binding in &original.bindings {
+        // A G502 assigns buttons on the drawing, so the sheet doesn't repeat them.
+        let listed: &[_] = if g502_layout { &[] } else { &original.bindings };
+        for binding in listed {
             let (choices, current) = edit_form::action_choices(*binding);
-            let labels: Vec<SharedString> = choices.iter().map(|c| SharedString::from(c.label.clone())).collect();
-            let select = cx.new(|cx| SelectState::new(labels, Some(IndexPath::new(current)), window, cx));
+            let labels: Vec<SharedString> = choices
+                .iter()
+                .map(|c| SharedString::from(c.label.clone()))
+                .collect();
+            let select =
+                cx.new(|cx| SelectState::new(labels, Some(IndexPath::new(current)), window, cx));
             subscriptions.push(cx.subscribe_in(&select, window, Self::on_select_changed));
             button_selects.push(select);
             button_choices.push(choices);
@@ -139,33 +161,48 @@ impl ProfileEditor {
         self.saving
     }
 
+    /// How many buttons the sheet offers a picker for.
+    pub fn button_picker_count(&self) -> usize {
+        self.button_selects.len()
+    }
+
     pub fn error(&self) -> Option<&SharedString> {
         self.error.as_ref()
     }
 
     /// What the form holds right now.
     pub fn form_values(&self, cx: &App) -> FormValues {
-        let dpi: Vec<String> = self.dpi_inputs.iter().map(|i| i.read(cx).value().to_string()).collect();
+        let dpi: Vec<String> = self
+            .dpi_inputs
+            .iter()
+            .map(|i| i.read(cx).value().to_string())
+            .collect();
         let polling_hz = self
             .polling
             .read(cx)
             .selected_value()
-            .and_then(|label| self.rates.iter().copied().find(|hz| rate_label(*hz) == *label))
-            .unwrap_or(self.original.report_rate_hz);
-        let buttons = self
-            .button_selects
-            .iter()
-            .zip(&self.button_choices)
-            .zip(&self.original.bindings)
-            .map(|((select, choices), original)| {
-                select
-                    .read(cx)
-                    .selected_value()
-                    .and_then(|label| choices.iter().find(|c| c.label == label.as_ref()))
-                    .map(|c| c.binding)
-                    .unwrap_or(*original)
+            .and_then(|label| {
+                self.rates
+                    .iter()
+                    .copied()
+                    .find(|hz| rate_label(*hz) == *label)
             })
-            .collect();
+            .unwrap_or(self.original.report_rate_hz);
+        // Buttons without a picker keep their assignment.
+        let mut buttons = self.original.bindings.clone();
+        for ((slot, select), choices) in buttons
+            .iter_mut()
+            .zip(&self.button_selects)
+            .zip(&self.button_choices)
+        {
+            let chosen = select
+                .read(cx)
+                .selected_value()
+                .and_then(|label| choices.iter().find(|c| c.label == label.as_ref()));
+            if let Some(choice) = chosen {
+                *slot = choice.binding;
+            }
+        }
         FormValues {
             dpi: dpi.try_into().expect("one input per DPI stage"),
             default_stage: self.default_stage,
@@ -179,9 +216,17 @@ impl ProfileEditor {
         edit_form::form_edits(&self.original, &self.form_values(cx), self.range.as_ref())
     }
 
-    pub fn set_dpi_text(&mut self, stage: usize, text: &str, window: &mut Window, cx: &mut Context<Self>) {
+    pub fn set_dpi_text(
+        &mut self,
+        stage: usize,
+        text: &str,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         if let Some(input) = self.dpi_inputs.get(stage) {
-            input.update(cx, |state, cx| state.set_value(text.to_string(), window, cx));
+            input.update(cx, |state, cx| {
+                state.set_value(text.to_string(), window, cx)
+            });
             self.error = None;
             cx.notify();
         }
@@ -238,19 +283,30 @@ impl ProfileEditor {
             .children(self.dpi_inputs.iter().enumerate().map(|(ix, input)| {
                 h_flex()
                     .gap_3()
-                    .child(div().w_4().flex_shrink_0().text_sm().text_color(muted).child((ix + 1).to_string()))
-                    .child(div().w_32().flex_shrink_0().child(
-                        Input::new(input)
-                            .small()
-                            .suffix(div().text_xs().text_color(muted).child("DPI"))
-                            .disabled(self.saving),
-                    ))
+                    .child(
+                        div()
+                            .w_4()
+                            .flex_shrink_0()
+                            .text_sm()
+                            .text_color(muted)
+                            .child((ix + 1).to_string()),
+                    )
+                    .child(
+                        div().w_32().flex_shrink_0().child(
+                            Input::new(input)
+                                .small()
+                                .suffix(div().text_xs().text_color(muted).child("DPI"))
+                                .disabled(self.saving),
+                        ),
+                    )
                     .child(
                         Radio::new(("default-stage", ix))
                             .label("Default")
                             .checked(self.default_stage == ix)
                             .disabled(self.saving)
-                            .on_click(cx.listener(move |this, _: &bool, _, cx| this.set_default_stage(ix, cx))),
+                            .on_click(cx.listener(move |this, _: &bool, _, cx| {
+                                this.set_default_stage(ix, cx)
+                            })),
                     )
             }))
             .child(div().text_xs().text_color(muted).child(hint))
@@ -259,26 +315,40 @@ impl ProfileEditor {
     fn render_buttons(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let muted = cx.theme().muted_foreground;
         let rows = present::button_rows(&self.original, self.g502_layout);
-        v_flex().gap_2().children(rows.into_iter().zip(&self.button_selects).enumerate().map(|(ix, (row, select))| {
-            h_flex()
-                .gap_3()
-                .child(
+        v_flex()
+            .gap_2()
+            .children(rows.into_iter().zip(&self.button_selects).enumerate().map(
+                |(ix, (row, select))| {
                     h_flex()
-                        .w_10()
-                        .flex_shrink_0()
-                        .when_some(row.key, |this, key| this.child(Tag::secondary().small().outline().child(key))),
-                )
-                .child(div().w(rems(8.)).flex_shrink_0().text_sm().text_color(muted).truncate().child(row.name.clone()))
-                .child(
-                    div().flex_1().min_w_0().child(
-                        Select::new(select)
-                            .id(("button-action", ix))
-                            .small()
-                            .accessibility_label(format!("Action for {}", row.name))
-                            .disabled(self.saving),
-                    ),
-                )
-        }))
+                        .gap_3()
+                        .child(
+                            h_flex()
+                                .w_10()
+                                .flex_shrink_0()
+                                .when_some(row.key, |this, key| {
+                                    this.child(Tag::secondary().small().outline().child(key))
+                                }),
+                        )
+                        .child(
+                            div()
+                                .w(rems(8.))
+                                .flex_shrink_0()
+                                .text_sm()
+                                .text_color(muted)
+                                .truncate()
+                                .child(row.name.clone()),
+                        )
+                        .child(
+                            div().flex_1().min_w_0().child(
+                                Select::new(select)
+                                    .id(("button-action", ix))
+                                    .small()
+                                    .accessibility_label(format!("Action for {}", row.name))
+                                    .disabled(self.saving),
+                            ),
+                        )
+                },
+            ))
     }
 }
 
@@ -287,7 +357,10 @@ fn rate_label(hz: u16) -> SharedString {
 }
 
 fn section(title: &'static str, body: impl IntoElement) -> impl IntoElement {
-    v_flex().gap_3().child(div().text_sm().font_semibold().child(title)).child(body)
+    v_flex()
+        .gap_3()
+        .child(div().text_sm().font_semibold().child(title))
+        .child(body)
 }
 
 impl Render for ProfileEditor {
@@ -313,7 +386,9 @@ impl Render for ProfileEditor {
                 ),
             ))
             .child(section("DPI stages", self.render_dpi(cx)))
-            .child(section("Buttons", self.render_buttons(cx)))
+            .when(!self.button_selects.is_empty(), |this| {
+                this.child(section("Buttons", self.render_buttons(cx)))
+            })
             .when_some(self.error.clone(), |this, error| {
                 this.child(Alert::error("save-error", error).title("Couldn't save"))
             })
@@ -340,7 +415,9 @@ impl Render for ProfileEditor {
                                 Button::new("cancel-edit")
                                     .label("Cancel")
                                     .disabled(self.saving)
-                                    .on_click(cx.listener(|_, _, _, cx| cx.emit(ProfileEditorEvent::Cancel))),
+                                    .on_click(cx.listener(|_, _, _, cx| {
+                                        cx.emit(ProfileEditorEvent::Cancel)
+                                    })),
                             )
                             .child(
                                 Button::new("save-edit")

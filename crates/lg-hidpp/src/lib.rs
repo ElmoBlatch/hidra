@@ -7,14 +7,14 @@
 //! the caller expects, verifies the result by reading it back, and puts the
 //! original contents back if anything goes wrong.
 
-pub mod discovery;
 mod device;
+pub mod discovery;
 mod error;
 pub mod features;
 pub mod record;
 pub mod replay;
-pub mod sim;
 mod report;
+pub mod sim;
 mod transport;
 
 pub use device::{Device, FeatureEntry, FeatureFlags};

@@ -111,13 +111,19 @@ pub enum ButtonBinding {
     /// `80 01 hi lo`: mouse-button bitmask.
     Mouse(MouseButtons),
     /// `80 02 mods key`: keyboard key (HID usage) with modifier bitmask.
-    Key { modifiers: u8, usage: u8 },
+    Key {
+        modifiers: u8,
+        usage: u8,
+    },
     /// `80 03 hi lo`: consumer-control usage.
     Consumer(u16),
     /// `90 code ..`: firmware special action.
     Special(SpecialAction),
     /// `00 sector 00 offset`: macro stored elsewhere in onboard memory.
-    Macro { sector: u8, offset: u8 },
+    Macro {
+        sector: u8,
+        offset: u8,
+    },
     /// `ff ff ff ff`: unassigned.
     Disabled,
     Unknown([u8; 4]),
@@ -201,7 +207,8 @@ impl ButtonBinding {
                         _ => return Err(crate::Error::UnknownAction(text.to_string())),
                     };
                 }
-                let usage = hid_key_usage(key).ok_or_else(|| crate::Error::UnknownAction(text.to_string()))?;
+                let usage = hid_key_usage(key)
+                    .ok_or_else(|| crate::Error::UnknownAction(text.to_string()))?;
                 Ok(Self::Key { modifiers, usage })
             }
         }
@@ -212,9 +219,11 @@ impl ButtonBinding {
             Self::Mouse(m) => format!("mouse {m}"),
             Self::Key { modifiers, usage } => {
                 let mut s = String::new();
-                for (bit, name) in ["Ctrl", "Shift", "Alt", "Super", "RCtrl", "RShift", "RAlt", "RSuper"]
-                    .iter()
-                    .enumerate()
+                for (bit, name) in [
+                    "Ctrl", "Shift", "Alt", "Super", "RCtrl", "RShift", "RAlt", "RSuper",
+                ]
+                .iter()
+                .enumerate()
                 {
                     if modifiers & (1 << bit) != 0 {
                         s.push_str(name);
@@ -226,9 +235,14 @@ impl ButtonBinding {
             }
             Self::Consumer(u) => format!("consumer {u:#06x}"),
             Self::Special(a) => a.label(),
-            Self::Macro { sector, offset } => format!("macro @ sector {sector} offset {offset:#04x}"),
+            Self::Macro { sector, offset } => {
+                format!("macro @ sector {sector} offset {offset:#04x}")
+            }
             Self::Disabled => "disabled".into(),
-            Self::Unknown(b) => format!("unknown {:02x} {:02x} {:02x} {:02x}", b[0], b[1], b[2], b[3]),
+            Self::Unknown(b) => format!(
+                "unknown {:02x} {:02x} {:02x} {:02x}",
+                b[0], b[1], b[2], b[3]
+            ),
         }
     }
 }
@@ -286,7 +300,14 @@ mod tests {
         }
         assert!(ButtonBinding::parse("key:hyper+x").is_err());
         assert!(ButtonBinding::parse("launch-missiles").is_err());
-        assert_eq!(ButtonBinding::Macro { sector: 4, offset: 0 }.encode(), None);
+        assert_eq!(
+            ButtonBinding::Macro {
+                sector: 4,
+                offset: 0
+            }
+            .encode(),
+            None
+        );
     }
 
     #[test]
@@ -303,12 +324,21 @@ mod tests {
     #[test]
     fn f24_is_keyboard_usage() {
         let b = ButtonBinding::decode([0x80, 0x02, 0x00, 0x73]);
-        assert_eq!(b, ButtonBinding::Key { modifiers: 0, usage: 0x73 });
+        assert_eq!(
+            b,
+            ButtonBinding::Key {
+                modifiers: 0,
+                usage: 0x73
+            }
+        );
         assert_eq!(b.label(), "key F24");
     }
 
     #[test]
     fn ctrl_c() {
-        assert_eq!(ButtonBinding::decode([0x80, 0x02, 0x01, 0x06]).label(), "key Ctrl+C");
+        assert_eq!(
+            ButtonBinding::decode([0x80, 0x02, 0x01, 0x06]).label(),
+            "key Ctrl+C"
+        );
     }
 }

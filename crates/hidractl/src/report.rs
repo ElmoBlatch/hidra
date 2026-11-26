@@ -14,7 +14,8 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result};
 use lg_hidpp::discovery::{self, NodeKind};
 use lg_hidpp::features::{
-    adjustable_dpi, battery_voltage, device_info, device_name, onboard_profiles, page_name, report_rate,
+    adjustable_dpi, battery_voltage, device_info, device_name, onboard_profiles, page_name,
+    report_rate,
 };
 use lg_hidpp::record::{Recorder, RecordingTransport};
 use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidrawTransport, Transport};
@@ -88,7 +89,11 @@ struct FeatureRecord {
 }
 
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|b| format!("{b:02x}")).collect::<Vec<_>>().join(" ")
+    bytes
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 /// Collect a report for every Logitech HID++ device and write it under `out`.
@@ -111,7 +116,11 @@ pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
             Err(e) => rec.error = Some(format!("open: {e}")),
             Ok(t) => {
                 let transport = RecordingTransport::new(t, recorder.clone());
-                match Device::open_with_timeout(transport, DEVICE_INDEX_DIRECT, Duration::from_millis(1500)) {
+                match Device::open_with_timeout(
+                    transport,
+                    DEVICE_INDEX_DIRECT,
+                    Duration::from_millis(1500),
+                ) {
                     Err(e) => rec.error = Some(format!("HID++ 2.0 open: {e}")),
                     Ok(mut dev) => {
                         if let Some(f) = dev.feature(device_info::PAGE) {
@@ -134,7 +143,9 @@ pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
         format: FORMAT,
         tool: format!("hidractl {}", env!("CARGO_PKG_VERSION")),
         created_unix: now,
-        kernel: std::fs::read_to_string("/proc/sys/kernel/osrelease").ok().map(|s| s.trim().to_string()),
+        kernel: std::fs::read_to_string("/proc/sys/kernel/osrelease")
+            .ok()
+            .map(|s| s.trim().to_string()),
         privacy: Privacy {
             unit_id_redacted: true,
             macro_sectors_included: include_macros,
@@ -160,7 +171,14 @@ pub fn run(out: &Path, include_macros: bool) -> Result<PathBuf> {
 
     std::fs::create_dir_all(out).with_context(|| format!("creating {}", out.display()))?;
     let pids: Vec<&str> = report.devices.iter().map(|d| d.pid.as_str()).collect();
-    let file = out.join(format!("hidra-report-{}-{now}.json", if pids.is_empty() { "none".into() } else { pids.join("-") }));
+    let file = out.join(format!(
+        "hidra-report-{}-{now}.json",
+        if pids.is_empty() {
+            "none".into()
+        } else {
+            pids.join("-")
+        }
+    ));
     std::fs::write(&file, serde_json::to_string_pretty(&report)?)?;
     Ok(file)
 }
@@ -183,7 +201,8 @@ fn collect<T: Transport>(dev: &mut Device<T>, rec: &mut DeviceRecord, include_ma
     if let Ok(info) = device_info::device_info(dev) {
         for e in 0..info.entity_count {
             if let Ok(f) = device_info::firmware_info(dev, e) {
-                rec.firmware.push(format!("{} {}", f.kind_name(), f.version_string()));
+                rec.firmware
+                    .push(format!("{} {}", f.kind_name(), f.version_string()));
             }
         }
     }
@@ -191,7 +210,11 @@ fn collect<T: Transport>(dev: &mut Device<T>, rec: &mut DeviceRecord, include_ma
         for s in 0..count {
             let list = adjustable_dpi::dpi_list(dev, s).ok();
             let cur = adjustable_dpi::sensor_dpi(dev, s).ok();
-            rec.sensor_dpi = Some(format!("sensor {s}: current {:?}, list {:?}", cur.map(|c| c.current), list));
+            rec.sensor_dpi = Some(format!(
+                "sensor {s}: current {:?}, list {:?}",
+                cur.map(|c| c.current),
+                list
+            ));
         }
     }
     let rates = report_rate::supported_rates_hz(dev).ok();
@@ -201,12 +224,18 @@ fn collect<T: Transport>(dev: &mut Device<T>, rec: &mut DeviceRecord, include_ma
     }
     rec.battery_mv = battery_voltage::voltage(dev).ok().map(|b| b.millivolts);
 
-    let Ok(raw) = onboard_profiles::info_raw(dev) else { return };
+    let Ok(raw) = onboard_profiles::info_raw(dev) else {
+        return;
+    };
     rec.onboard_descriptor_hex = Some(hex(&raw));
-    let Some(d) = Descriptor::parse(&raw) else { return };
+    let Some(d) = Descriptor::parse(&raw) else {
+        return;
+    };
     rec.onboard_layout_supported = Some(d.layout_supported());
     rec.onboard_mode = onboard_profiles::mode(dev).ok();
-    rec.active_profile = onboard_profiles::active_profile(dev).ok().map(|a| format!("{a:#06x}"));
+    rec.active_profile = onboard_profiles::active_profile(dev)
+        .ok()
+        .map(|a| format!("{a:#06x}"));
     let _ = onboard_profiles::active_resolution_index(dev);
 
     let mut addresses: Vec<u16> = vec![0];

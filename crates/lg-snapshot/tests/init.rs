@@ -7,12 +7,15 @@ use std::path::PathBuf;
 
 use lg_profiles::ProfileEdit;
 use lg_snapshot::{
-    DeviceEntry, DeviceSource, EditError, commit_initialize, edit_entry, open_entry, plan_initialize, read_entry,
-    restore_from_backup, simulated_entry,
+    DeviceEntry, DeviceSource, EditError, commit_initialize, edit_entry, open_entry,
+    plan_initialize, read_entry, restore_from_backup, simulated_entry,
 };
 
 fn lightspeed() -> DeviceEntry {
-    let log = PathBuf::from(format!("{}/../../captures/ratbagd/both-mice-lightspeed-407f.log", env!("CARGO_MANIFEST_DIR")));
+    let log = PathBuf::from(format!(
+        "{}/../../captures/ratbagd/both-mice-lightspeed-407f.log",
+        env!("CARGO_MANIFEST_DIR")
+    ));
     simulated_entry(&log, "Logitech G502").expect("simulated LIGHTSPEED")
 }
 
@@ -48,10 +51,15 @@ fn setup_copies_the_factory_profile_then_edits_and_restore_work() {
     // Directory: five slots, the first enabled, libratbag's terminator.
     assert_eq!(
         &plan.directory[..24],
-        &[0, 1, 1, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0xff, 0xff, 0, 0]
+        &[
+            0, 1, 1, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0xff, 0xff, 0, 0
+        ]
     );
     let outcome = commit_initialize(&mut dev, &plan, "sim", &dir).unwrap();
-    assert_eq!((outcome.active_before, outcome.active_after), (0x0101, 0x0001));
+    assert_eq!(
+        (outcome.active_before, outcome.active_after),
+        (0x0101, 0x0001)
+    );
     drop(dev);
 
     // The user profile is the factory profile plus a CRC; nothing else moved.
@@ -71,13 +79,28 @@ fn setup_copies_the_factory_profile_then_edits_and_restore_work() {
     let enabled: Vec<_> = set.profiles.iter().filter(|p| p.enabled).collect();
     assert_eq!(enabled.len(), 1);
     assert!(enabled[0].active);
-    let edited = edit_entry(&entry, 1, &[ProfileEdit::SetDpi { stage: 1, dpi: 1000 }], &dir).unwrap();
-    let c = edited.onboard.unwrap().unwrap().profiles.unwrap().profiles[0].content.clone().unwrap();
+    let edited = edit_entry(
+        &entry,
+        1,
+        &[ProfileEdit::SetDpi {
+            stage: 1,
+            dpi: 1000,
+        }],
+        &dir,
+    )
+    .unwrap();
+    let c = edited.onboard.unwrap().unwrap().profiles.unwrap().profiles[0]
+        .content
+        .clone()
+        .unwrap();
     assert_eq!(c.dpi_stages, [400, 1000, 1600, 3200, 6400]);
 
     // Setting it up twice is refused.
     let mut dev = open_entry(&entry).unwrap();
-    assert!(matches!(plan_initialize(&mut dev), Err(EditError::Invalid(_))));
+    assert!(matches!(
+        plan_initialize(&mut dev),
+        Err(EditError::Invalid(_))
+    ));
 
     // Restoring the pre-setup backup returns the memory to blank and the
     // mouse to its factory profile.
@@ -100,7 +123,10 @@ fn a_failed_directory_write_leaves_the_memory_blank() {
     let dir = backups("fail");
     let mut dev = open_entry(&entry).unwrap();
     let plan = plan_initialize(&mut dev).unwrap();
-    assert!(matches!(commit_initialize(&mut dev, &plan, "sim", &dir), Err(EditError::Write(_))));
+    assert!(matches!(
+        commit_initialize(&mut dev, &plan, "sim", &dir),
+        Err(EditError::Write(_))
+    ));
     let (after, active) = memory(&entry);
     assert_eq!(after, blank);
     assert_eq!(active, 0x0101);
@@ -109,7 +135,10 @@ fn a_failed_directory_write_leaves_the_memory_blank() {
 
 #[test]
 fn a_device_with_user_profiles_is_not_set_up_again() {
-    let log = PathBuf::from(format!("{}/../../captures/ratbagd/g502-proteus-spectrum-c332.log", env!("CARGO_MANIFEST_DIR")));
+    let log = PathBuf::from(format!(
+        "{}/../../captures/ratbagd/g502-proteus-spectrum-c332.log",
+        env!("CARGO_MANIFEST_DIR")
+    ));
     let entry = simulated_entry(&log, "Logitech Gaming Mouse G502").unwrap();
     let mut dev = open_entry(&entry).unwrap();
     match plan_initialize(&mut dev) {

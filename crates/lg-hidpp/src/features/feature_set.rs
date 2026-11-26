@@ -8,7 +8,11 @@ pub fn count<T: Transport>(dev: &mut Device<T>, fs_index: u8) -> Result<u8> {
     Ok(dev.call(fs_index, 0, &[0, 0, 0])?[0])
 }
 
-pub fn feature_id<T: Transport>(dev: &mut Device<T>, fs_index: u8, index: u8) -> Result<FeatureEntry> {
+pub fn feature_id<T: Transport>(
+    dev: &mut Device<T>,
+    fs_index: u8,
+    index: u8,
+) -> Result<FeatureEntry> {
     let r = dev.call(fs_index, 1, &[index, 0, 0])?;
     Ok(FeatureEntry {
         index,

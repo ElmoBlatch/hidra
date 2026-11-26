@@ -18,5 +18,8 @@ impl BatteryVoltage {
 pub fn voltage<T: Transport>(dev: &mut Device<T>) -> Result<BatteryVoltage> {
     let idx = dev.require(PAGE)?;
     let r = dev.call(idx, 0, &[0, 0, 0])?;
-    Ok(BatteryVoltage { millivolts: u16::from_be_bytes([r[0], r[1]]), flags: r[2] })
+    Ok(BatteryVoltage {
+        millivolts: u16::from_be_bytes([r[0], r[1]]),
+        flags: r[2],
+    })
 }
