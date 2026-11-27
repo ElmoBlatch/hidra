@@ -2,12 +2,14 @@
 //!
 //! `MiceWindow` owns all application state. Device I/O runs on the GPUI
 //! background executor; results come back through a weak handle and are
-//! applied in `apply_*` methods. Nothing here writes to a device: the only
-//! device calls are `Source::discover` and `lg_snapshot::read_entry`.
+//! applied in `apply_*` methods. The device calls are `Source::discover`,
+//! `lg_snapshot::read_entry`, the timed `lg_snapshot::read_live`, and
+//! `lg_snapshot::edit_entry` when the user saves.
 
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
 use gpui_kit::component::{
     ActiveTheme as _, Disableable as _, IconName, Sizable as _, StyledExt as _, WindowExt as _,
@@ -28,7 +30,7 @@ use gpui_kit::component::{
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     App, AppContext as _, Context, Entity, FocusHandle, Focusable, InteractiveElement as _, IntoElement, KeyBinding,
-    ParentElement as _, Render, SharedString, Styled as _, Subscription, Window, actions, div, rems,
+    ParentElement as _, Render, SharedString, Styled as _, Subscription, Task, Window, actions, div, rems,
 };
 use lg_profiles::ProfileEdit;
 use lg_snapshot::{DeviceEntry, DeviceSnapshot, EditError, ReadError};
@@ -96,7 +98,14 @@ pub struct MiceWindow {
     button_map: Option<(ButtonMapKey, Entity<ButtonMap>)>,
     _button_map_subscription: Option<Subscription>,
     backup_dir: PathBuf,
+    /// True while a live check of the selected mouse is running.
+    live_check_running: bool,
+    _live_checks: Task<()>,
 }
+
+/// How often the selected mouse is asked for its active profile and DPI, so
+/// that a switch made with a button on the mouse shows up.
+const LIVE_CHECK_INTERVAL: Duration = Duration::from_millis(1500);
 
 /// What a button map was built from: the device, the profile's address and
 /// the identity of the snapshot. A new read or another profile gives a new
@@ -107,6 +116,14 @@ impl MiceWindow {
     pub fn new(source: Source, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let focus_handle = cx.focus_handle();
         window.focus(&focus_handle, cx);
+        let live_checks = cx.spawn(async move |this, cx| {
+            loop {
+                cx.background_executor().timer(LIVE_CHECK_INTERVAL).await;
+                if this.update(cx, |this, cx| this.check_live(cx)).is_err() {
+                    break;
+                }
+            }
+        });
         let mut this = Self {
             source,
             focus_handle,
@@ -121,6 +138,8 @@ impl MiceWindow {
             button_map: None,
             _button_map_subscription: None,
             backup_dir: state::default_backup_dir(),
+            live_check_running: false,
+            _live_checks: live_checks,
         };
         this.start_discovery(cx);
         this
@@ -421,6 +440,60 @@ impl MiceWindow {
             self.reads.insert(id, read);
         }
         cx.notify();
+    }
+
+    /// Ask the selected mouse for its active profile and sensor DPI, and show
+    /// what changed. Runs on a timer; skipped while the mouse is being read,
+    /// written or edited.
+    pub fn check_live(&mut self, cx: &mut Context<Self>) {
+        if self.live_check_running || self.editor.is_some() || self.discovery != Discovery::Ready {
+            return;
+        }
+        let Some(entry) = self.selected.as_ref().and_then(|id| self.devices.iter().find(|d| &d.id == id)).cloned()
+        else {
+            return;
+        };
+        let live = !matches!(entry.source, lg_snapshot::DeviceSource::Replay { .. });
+        if !live || self.in_flight.contains(&entry.id) || !matches!(self.reads.get(&entry.id), Some(DeviceRead::Ready(_))) {
+            return;
+        }
+        self.live_check_running = true;
+        cx.spawn(async move |this, cx| {
+            let id = entry.id.clone();
+            let result = cx.background_spawn(async move { lg_snapshot::read_live(&entry) }).await;
+            this.update(cx, |this, cx| this.apply_live(id, result, cx)).ok();
+        })
+        .detach();
+    }
+
+    fn apply_live(&mut self, id: String, result: Result<lg_snapshot::LiveState, ReadError>, cx: &mut Context<Self>) {
+        self.live_check_running = false;
+        // A sleeping or unplugged mouse fails here; the last full read stays.
+        let Ok(live) = result else { return };
+        if self.in_flight.contains(&id) || self.editor.is_some() {
+            return;
+        }
+        let Some(DeviceRead::Ready(snapshot)) = self.reads.get_mut(&id) else { return };
+        let shown_active = snapshot.onboard.as_ref().and_then(|o| o.as_ref().ok()).and_then(|o| o.active_address);
+        if live.active_profile.is_some() && live.active_profile != shown_active {
+            // DPI and polling rate follow the profile, so read everything
+            // again, and show the profile the mouse switched to.
+            self.chosen_profiles.remove(&id);
+            if let Some(entry) = self.devices.iter().find(|d| d.id == id).cloned() {
+                self.start_read(entry, cx);
+            }
+            return;
+        }
+        if let (Some(dpi), Some(Ok(shown))) = (live.sensor_dpi, snapshot.sensor_dpi.as_ref())
+            && shown.current != dpi
+        {
+            // In place where possible: a new snapshot would rebuild the
+            // button map and close an open action list.
+            if let Some(Ok(sensor)) = Arc::make_mut(snapshot).sensor_dpi.as_mut() {
+                sensor.current = dpi;
+            }
+            cx.notify();
+        }
     }
 
     fn retry(&mut self, id: &str, cx: &mut Context<Self>) {

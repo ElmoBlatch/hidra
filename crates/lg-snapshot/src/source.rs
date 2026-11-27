@@ -1,9 +1,10 @@
 use std::io::{self, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use lg_hidpp::discovery;
-use lg_hidpp::features::onboard_profiles;
+use lg_hidpp::features::{adjustable_dpi, onboard_profiles};
 use lg_hidpp::replay::{ReplayTransport, parse_log};
 use lg_hidpp::sim::{SimMemory, SimMouse};
 use lg_hidpp::{DEVICE_INDEX_DIRECT, Device, HidTransport};
@@ -259,6 +260,39 @@ pub fn open_entry(entry: &DeviceEntry) -> Result<Device<AnyTransport>, ReadError
                 .map_err(|e| ReadError::Unreachable(e.to_string()))
         }
     }
+}
+
+/// The values that change when buttons on the mouse are pressed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LiveState {
+    /// Sector address of the active profile.
+    pub active_profile: Option<u16>,
+    /// DPI the sensor runs at now.
+    pub sensor_dpi: Option<u16>,
+}
+
+/// Read only the active profile and the sensor DPI. Blocking, a few
+/// requests: cheap enough to repeat every second or two. Captures have no
+/// live state, so replayed devices return an error.
+pub fn read_live(entry: &DeviceEntry) -> Result<LiveState, ReadError> {
+    const PAGES: &[u16] = &[onboard_profiles::PAGE, adjustable_dpi::PAGE];
+    const TIMEOUT: Duration = Duration::from_millis(300);
+    let unreachable = |e: lg_hidpp::Error| ReadError::Unreachable(e.to_string());
+    let mut dev = match &entry.source {
+        DeviceSource::Hidraw { path, index } => {
+            let transport = HidTransport::open(path).map_err(|e| ReadError::Other(format!("opening {}: {e}", path.display())))?;
+            Device::open_partial(AnyTransport::Hidraw(transport), *index, TIMEOUT, PAGES).map_err(unreachable)?
+        }
+        DeviceSource::Sim(memory) => {
+            let transport = AnyTransport::Sim(SimMouse::new(memory.clone()));
+            Device::open_partial(transport, DEVICE_INDEX_DIRECT, TIMEOUT, PAGES).map_err(unreachable)?
+        }
+        DeviceSource::Replay { .. } => return Err(ReadError::Other("a capture has no live state".into())),
+    };
+    Ok(LiveState {
+        active_profile: onboard_profiles::active_profile(&mut dev).ok(),
+        sensor_dpi: adjustable_dpi::sensor_dpi(&mut dev, 0).ok().map(|s| s.current),
+    })
 }
 
 /// Open a device and read everything the viewer shows. Blocking: expect one

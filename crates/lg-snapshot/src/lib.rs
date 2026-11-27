@@ -27,7 +27,7 @@ pub use source::{
     simulated_entry_from_log,
 };
 pub use backup::save_backup;
-pub use source::{WINDOWS_WRITES_ENV, platform_write_verified};
+pub use source::{LiveState, WINDOWS_WRITES_ENV, platform_write_verified, read_live};
 pub use edit::{EditError, EditPlan, WRITE_VERIFIED_PIDS, commit_edit, edit_entry, plan_edit};
 pub use init::{InitOutcome, InitPlan, commit_initialize, plan_initialize, restore_from_backup};
 pub use transport::AnyTransport;

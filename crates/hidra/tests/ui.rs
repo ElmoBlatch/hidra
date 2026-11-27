@@ -469,3 +469,45 @@ async fn edit_sheet_has_no_button_pickers_for_a_g502(cx: &mut TestAppContext) {
         assert_eq!(e.form_values(cx).buttons, kept, "the form keeps the stored assignments");
     });
 }
+
+/// A profile switch made on the mouse itself: the next live check marks the
+/// new profile active and shows it.
+#[gpui_kit::test]
+async fn a_profile_switch_on_the_mouse_shows_up(cx: &mut TestAppContext) {
+    use lg_snapshot::DeviceSource;
+
+    let source = Source::demo().unwrap();
+    let Source::Fixed(entries) = &source else { unreachable!() };
+    let DeviceSource::Sim(memory) = entries[0].source.clone() else { unreachable!() };
+    let (handle, view) = open(cx, source);
+    settle(cx, handle, &view).await;
+
+    let active = |cx: &mut TestAppContext| {
+        cx.update(|cx| {
+            let v = view.read(cx);
+            let id = v.selected_device().unwrap().to_string();
+            let snapshot = v.device_read(&id).unwrap().snapshot().unwrap().clone();
+            let set = snapshot.onboard.as_ref().unwrap().as_ref().unwrap().profiles.as_ref().unwrap().clone();
+            (set.active().map(|p| p.address), set.profiles.iter().map(|p| p.address).collect::<Vec<_>>(), v.shown_profile())
+        })
+    };
+    let (before, addresses, shown) = active(cx);
+    assert_eq!(shown, before);
+    let other = *addresses.iter().find(|a| Some(**a) != before).expect("the demo mouse has several profiles");
+
+    // Look at the active profile's tab by choice, then switch on the "mouse".
+    cx.update(|cx| view.update(cx, |v, cx| v.select_profile(before.unwrap(), cx)));
+    {
+        let mut m = memory.lock().unwrap();
+        m.active_profile = other;
+        m.active_stage = m.sectors[&other].get(1).copied().unwrap_or(0);
+    }
+    cx.update(|cx| view.update(cx, |v, cx| v.check_live(cx)));
+    settle(cx, handle, &view).await;
+    cx.run_until_parked();
+    settle(cx, handle, &view).await;
+
+    let (after, _, shown) = active(cx);
+    assert_eq!(after, Some(other), "the switched-to profile is marked active");
+    assert_eq!(shown, Some(other), "and it is the profile shown");
+}

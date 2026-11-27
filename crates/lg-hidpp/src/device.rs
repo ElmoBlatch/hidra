@@ -80,6 +80,25 @@ impl<T: Transport> Device<T> {
         Ok(dev)
     }
 
+    /// Open without the ping and the full feature enumeration: look up only
+    /// `pages` through IRoot. For short, repeated reads of a device that was
+    /// opened in full before. Makes one attempt and does not wait for a
+    /// sleeping wireless device to wake.
+    pub fn open_partial(transport: T, device_index: u8, timeout: Duration, pages: &[u16]) -> Result<Self> {
+        if !transport.supports_short() && !transport.supports_long() {
+            return Err(Error::NoHidppReports);
+        }
+        let mut dev = Self { transport, device_index, protocol: (0, 0), features: Vec::new(), timeout };
+        let mut features = vec![FeatureEntry { index: 0, page: root::PAGE, flags: FeatureFlags(0), version: 0 }];
+        for &page in pages {
+            if let Some(index) = root::feature_index(&mut dev, page)? {
+                features.push(FeatureEntry { index, page, flags: FeatureFlags(0), version: 0 });
+            }
+        }
+        dev.features = features;
+        Ok(dev)
+    }
+
     pub fn device_index(&self) -> u8 {
         self.device_index
     }
